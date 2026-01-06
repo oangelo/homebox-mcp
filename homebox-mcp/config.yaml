@@ -1,7 +1,7 @@
 ---
 name: "Homebox MCP Server"
 description: "MCP Server para gerenciar inventário Homebox via IA"
-version: "0.1.0"
+version: "0.1.1"
 slug: "homebox-mcp"
 url: "https://github.com/oangelo/homebox-mcp"
 init: false
@@ -9,6 +9,10 @@ arch:
   - amd64
   - aarch64
   - armv7
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: "MCP Server SSE endpoint"
 ingress: true
 ingress_port: 8099
 ingress_stream: true
