@@ -19,11 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create the MCP server
-mcp = FastMCP(
-    "Homebox Inventory",
-    description="Gerenciamento de inventário doméstico via Homebox. "
-    "Permite listar, criar, atualizar e buscar itens, localizações e labels.",
-)
+mcp = FastMCP("Homebox Inventory")
 
 # Create the Homebox client
 client = HomeboxClient(config)
