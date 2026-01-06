@@ -10,12 +10,12 @@ COPY app /app
 
 # Setup base system and Python
 RUN apk add --no-cache \
-    python3=3.12.10-r1 \
-    py3-pip=24.3.1-r0 \
+    python3 \
+    py3-pip \
     && pip3 install --no-cache-dir --break-system-packages \
-    fastmcp==2.3.4 \
-    httpx==0.28.1 \
-    pydantic==2.10.6
+    fastmcp \
+    httpx \
+    pydantic
 
 # Build arguments
 ARG BUILD_ARCH
