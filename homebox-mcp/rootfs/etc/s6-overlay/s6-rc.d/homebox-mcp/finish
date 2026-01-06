@@ -1,0 +1,8 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Add-on: Homebox MCP Server
+# Handles service shutdown
+# ==============================================================================
+
+bashio::log.info "Homebox MCP Server stopped"

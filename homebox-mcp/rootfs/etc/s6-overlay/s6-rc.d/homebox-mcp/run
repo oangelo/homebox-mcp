@@ -1,0 +1,19 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Add-on: Homebox MCP Server
+# Runs the MCP server for Homebox inventory management
+# ==============================================================================
+
+bashio::log.info "Starting Homebox MCP Server..."
+
+# Export configuration as environment variables
+export HOMEBOX_URL="$(bashio::config 'homebox_url')"
+export HOMEBOX_USERNAME="$(bashio::config 'homebox_username')"
+export HOMEBOX_PASSWORD="$(bashio::config 'homebox_password')"
+export LOG_LEVEL="$(bashio::config 'log_level')"
+
+bashio::log.info "Connecting to Homebox at: ${HOMEBOX_URL}"
+
+# Run the MCP server
+exec python3 /app/server.py

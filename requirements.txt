@@ -1,0 +1,11 @@
+# Homebox MCP Server Dependencies
+# Python 3.11+
+
+# MCP Server Framework
+fastmcp>=2.3.4
+
+# HTTP Client
+httpx>=0.28.1
+
+# Data Validation
+pydantic>=2.10.6

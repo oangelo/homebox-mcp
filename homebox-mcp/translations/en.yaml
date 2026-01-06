@@ -1,0 +1,14 @@
+---
+configuration:
+  homebox_url:
+    name: Homebox URL
+    description: URL of the Homebox server (e.g., http://homeassistant.local:7745)
+  homebox_username:
+    name: Homebox Username
+    description: Username for Homebox authentication
+  homebox_password:
+    name: Homebox Password
+    description: Password for Homebox authentication
+  log_level:
+    name: Log Level
+    description: Logging level for the MCP server
