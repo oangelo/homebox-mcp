@@ -425,7 +425,7 @@ app = Starlette(
     routes=[
         Route("/", homepage),
         Route("/api/status", api_status),
-        Mount("/", app=mcp.sse_app()),
+        Mount("/", app=mcp.http_app(transport="sse")),
     ]
 )
 
