@@ -9,3 +9,7 @@ httpx>=0.28.1
 
 # Data Validation
 pydantic>=2.10.6
+
+# Web Server
+starlette>=0.41.0
+uvicorn>=0.32.0

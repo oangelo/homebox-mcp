@@ -15,7 +15,9 @@ RUN apk add --no-cache \
     && pip3 install --no-cache-dir --break-system-packages \
     fastmcp \
     httpx \
-    pydantic
+    pydantic \
+    starlette \
+    uvicorn
 
 # Build arguments
 ARG BUILD_ARCH

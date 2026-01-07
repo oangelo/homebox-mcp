@@ -5,6 +5,19 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.2.0] - 2026-01-06
+
+### Adicionado
+
+- Dashboard web de status na página inicial do addon
+- Exibe status de conexão com o Homebox
+- Mostra contagem de localizações, itens e labels
+- Exibe uptime do servidor
+- Mostra endpoint MCP para fácil configuração
+- Lista de ferramentas disponíveis no dashboard
+- API endpoint `/api/status` para consulta programática
+- Auto-refresh a cada 30 segundos
+
 ## [0.1.1] - 2026-01-06
 
 ### Adicionado
