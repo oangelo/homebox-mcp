@@ -39,10 +39,16 @@ class HomeboxClient:
     async def _ensure_authenticated(self) -> None:
         """Ensure we have a valid authentication token."""
         if self._token is None:
-            await self._login()
+            if self.config.use_token_auth:
+                # Use pre-configured token
+                self._token = self.config.homebox_token
+                logger.info("Using configured token for Homebox authentication")
+            else:
+                # Login with credentials
+                await self._login()
 
     async def _login(self) -> None:
-        """Authenticate with the Homebox API."""
+        """Authenticate with the Homebox API using credentials."""
         client = await self._get_client()
         response = await client.post(
             f"{self.base_url}/users/login",
@@ -54,7 +60,7 @@ class HomeboxClient:
         response.raise_for_status()
         data = response.json()
         self._token = data.get("token")
-        logger.info("Successfully authenticated with Homebox")
+        logger.info("Successfully authenticated with Homebox using credentials")
 
     def _get_headers(self) -> dict[str, str]:
         """Get headers for authenticated requests."""

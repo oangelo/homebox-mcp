@@ -1,7 +1,7 @@
 ---
 name: "Homebox MCP Server"
 description: "MCP Server para gerenciar inventário Homebox via IA"
-version: "0.2.0"
+version: "0.2.1"
 slug: "homebox-mcp"
 url: "https://github.com/oangelo/homebox-mcp"
 init: false
@@ -20,11 +20,15 @@ panel_icon: "mdi:package-variant-closed"
 panel_title: "Homebox MCP"
 options:
   homebox_url: "http://homeassistant.local:7745"
+  auth_method: "credentials"
   homebox_username: ""
   homebox_password: ""
+  homebox_token: ""
   log_level: "info"
 schema:
   homebox_url: str
-  homebox_username: str
-  homebox_password: str
+  auth_method: list(credentials|token)
+  homebox_username: str?
+  homebox_password: str?
+  homebox_token: str?
   log_level: list(trace|debug|info|warning|error)

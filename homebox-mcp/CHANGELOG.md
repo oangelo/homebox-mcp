@@ -5,6 +5,14 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.2.1] - 2026-01-06
+
+### Adicionado
+
+- Opção de autenticação via Token ou Credenciais (usuário/senha)
+- Novo campo `auth_method` nas configurações (credentials | token)
+- Novo campo `homebox_token` para autenticação via token
+
 ## [0.2.0] - 2026-01-06
 
 ### Adicionado

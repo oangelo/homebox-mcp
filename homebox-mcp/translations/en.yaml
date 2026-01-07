@@ -3,12 +3,18 @@ configuration:
   homebox_url:
     name: Homebox URL
     description: URL of the Homebox server (e.g., http://homeassistant.local:7745)
+  auth_method:
+    name: Authentication Method
+    description: Choose between username/password credentials or API token
   homebox_username:
     name: Homebox Username
-    description: Username for Homebox authentication
+    description: Username for Homebox authentication (only used if auth method is 'credentials')
   homebox_password:
     name: Homebox Password
-    description: Password for Homebox authentication
+    description: Password for Homebox authentication (only used if auth method is 'credentials')
+  homebox_token:
+    name: Homebox API Token
+    description: API token for Homebox authentication (only used if auth method is 'token')
   log_level:
     name: Log Level
     description: Logging level for the MCP server
