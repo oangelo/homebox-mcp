@@ -7,6 +7,17 @@
 
 Servidor MCP (Model Context Protocol) para gerenciar o inventário do Homebox via assistentes de IA.
 
+## Pré-requisitos
+
+Este addon foi desenvolvido para funcionar com o **Homebox** rodando no Home Assistant.
+
+**Addon Homebox recomendado:** [homebox-ingress-ha-addon](https://github.com/Oddiesea/homebox-ingress-ha-addon)
+
+Para instalar o Homebox:
+1. Adicione o repositório: `https://github.com/Oddiesea/homebox-ingress-ha-addon`
+2. Instale o addon **Homebox**
+3. Inicie e configure seu inventário
+
 ## Sobre
 
 Este addon expõe um servidor MCP que permite que assistentes de IA (como Claude)

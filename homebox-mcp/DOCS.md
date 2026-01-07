@@ -33,6 +33,16 @@ homebox_password: "sua_senha_aqui"
 log_level: "info"
 ```
 
+### Addon Homebox Recomendado
+
+Este MCP foi desenvolvido para funcionar com o addon 
+[homebox-ingress-ha-addon](https://github.com/Oddiesea/homebox-ingress-ha-addon).
+
+Para instalar:
+1. Adicione o repositório: `https://github.com/Oddiesea/homebox-ingress-ha-addon`
+2. Instale o addon **Homebox**
+3. Inicie e configure seu inventário
+
 ### Encontrando a URL do Homebox
 
 Se você tem o Homebox rodando como addon do Home Assistant:
