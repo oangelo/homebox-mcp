@@ -78,23 +78,84 @@ Se o Homebox está rodando externamente:
 
 ## Conectando ao Servidor MCP
 
-### URL do Endpoint
+O servidor MCP expõe um endpoint SSE (Server-Sent Events) na porta 8099.
 
-O servidor MCP fica disponível via Ingress do Home Assistant:
+### Acesso Local (Rede Interna)
+
+Na mesma rede do Home Assistant:
+
+```
+http://homeassistant.local:8099/sse
+```
+
+Ou pelo IP:
+
+```
+http://192.168.X.X:8099/sse
+```
+
+### Acesso Externo via Cloudflare Tunnel (Recomendado)
+
+Para expor o MCP na internet de forma segura (necessário para Claude.ai web), 
+use o [addon Cloudflared](https://github.com/homeassistant-apps/app-cloudflared).
+
+#### 1. Instalar o addon Cloudflared
+
+1. Adicione o repositório ao Home Assistant:
+   ```
+   https://github.com/homeassistant-apps/app-cloudflared
+   ```
+2. Instale o addon **Cloudflared**
+
+#### 2. Configurar no Cloudflare
+
+1. Acesse [Cloudflare Zero Trust](https://one.dash.cloudflare.com/)
+2. Vá em **Networks** → **Tunnels** → **Create a tunnel**
+3. Escolha **Cloudflared** e dê um nome ao tunnel
+4. Copie o token gerado
+
+#### 3. Configurar o addon Cloudflared
+
+Configure o addon para expor a porta 8099 do MCP:
+
+```yaml
+additional_hosts:
+  - hostname: mcp.seudominio.com
+    service: http://homeassistant:8099
+```
+
+Ou se não tiver domínio próprio, use um subdomínio gratuito do Cloudflare:
+
+```yaml
+additional_hosts:
+  - hostname: mcp-homebox.seudominio.workers.dev
+    service: http://homeassistant:8099
+```
+
+#### 4. URL Final para Claude.ai
+
+Após configurado, use no Claude.ai:
+
+```
+https://mcp.seudominio.com/sse
+```
+
+### Acesso via Ingress (alternativa)
+
+O Ingress do HA requer autenticação por sessão, o que dificulta acesso externo.
+Use apenas para acesso local via navegador:
 
 ```
 https://seu-home-assistant/api/hassio_ingress/<ingress_token>/sse
 ```
 
-Você pode encontrar a URL completa:
-
-1. Vá em **Configurações** → **Add-ons** → **Homebox MCP Server**
-2. Na aba lateral, clique em "ABRIR INTERFACE WEB"
-3. Copie a URL da barra de endereços
-
 ### Configurando no Claude Desktop
 
 Adicione ao seu `claude_desktop_config.json`:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+**Linux**: `~/.config/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -103,17 +164,42 @@ Adicione ao seu `claude_desktop_config.json`:
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://seu-home-assistant/api/hassio_ingress/TOKEN/sse"
+        "https://mcp.seudominio.com/sse"
       ]
     }
   }
 }
 ```
 
-### Testando com MCP Inspector
+### Configurando no Claude.ai Web (Experimental)
+
+1. Acesse as configurações de MCP no Claude.ai
+2. Adicione um novo servidor MCP
+3. Cole a URL: `https://mcp.seudominio.com/sse`
+4. OAuth: deixe desabilitado (não é necessário)
+
+### Testando a Conexão
+
+#### Via terminal (curl)
 
 ```bash
-npx @anthropic/mcp-inspector https://seu-home-assistant/api/hassio_ingress/TOKEN/sse
+# Teste local
+curl -N "http://homeassistant.local:8099/sse"
+
+# Teste via Cloudflare Tunnel
+curl -N "https://mcp.seudominio.com/sse"
+```
+
+Se funcionar, você verá:
+```
+event: endpoint
+data: /messages/?session_id=...
+```
+
+#### Via MCP Inspector
+
+```bash
+npx @anthropic/mcp-inspector https://mcp.seudominio.com/sse
 ```
 
 ## Exemplos de Uso

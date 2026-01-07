@@ -43,9 +43,41 @@ homebox_password: "sua_senha"
 log_level: "info"
 ```
 
+## Acesso Externo via Cloudflare Tunnel
+
+Para usar com Claude.ai web ou acessar externamente, recomendamos usar o 
+[addon Cloudflared](https://github.com/homeassistant-apps/app-cloudflared) 
+para criar um tunnel seguro.
+
+### Configurar Cloudflared
+
+1. Instale o addon [Cloudflared](https://github.com/homeassistant-apps/app-cloudflared)
+2. Configure o tunnel para expor a porta 8099:
+
+```yaml
+additional_hosts:
+  - hostname: mcp.seudominio.com
+    service: http://homeassistant:8099
+```
+
+3. Use a URL no Claude.ai: `https://mcp.seudominio.com/sse`
+
+### Acesso Local
+
+Na rede local, acesse diretamente:
+```
+http://homeassistant.local:8099/sse
+```
+
 ## Uso com Claude
 
-### Configuração do Claude Desktop
+### Claude.ai Web (Experimental)
+
+1. Acesse as configurações de MCP no Claude.ai
+2. Adicione a URL: `https://mcp.seudominio.com/sse`
+3. OAuth: não é necessário
+
+### Claude Desktop
 
 Adicione ao seu `claude_desktop_config.json`:
 
@@ -56,7 +88,7 @@ Adicione ao seu `claude_desktop_config.json`:
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://seu-home-assistant/api/hassio_ingress/TOKEN/sse"
+        "https://mcp.seudominio.com/sse"
       ]
     }
   }
