@@ -63,7 +63,9 @@ class HomeboxClient:
         )
         response.raise_for_status()
         data = response.json()
-        logger.debug(f"Login response: {data}")
+        
+        # Log the full response structure to identify token field
+        logger.info(f"Login response keys: {list(data.keys()) if isinstance(data, dict) else type(data)}")
         
         # Homebox returns token directly or nested in different fields
         self._token = data.get("token") or data.get("accessToken") or data.get("access_token")
@@ -74,13 +76,13 @@ class HomeboxClient:
                 if key in data and isinstance(data[key], dict):
                     self._token = data[key].get("token") or data[key].get("accessToken")
                     if self._token:
+                        logger.info(f"Token found in nested field: {key}")
                         break
         
         if self._token:
-            logger.info("Successfully authenticated with Homebox using credentials")
-            logger.debug(f"Token received (first 10 chars): {self._token[:10]}...")
+            logger.info(f"Successfully authenticated with Homebox. Token length: {len(self._token)}")
         else:
-            logger.error(f"No token found in login response. Response keys: {data.keys() if isinstance(data, dict) else type(data)}")
+            logger.error(f"No token found in login response! Full response: {data}")
 
     def _get_headers(self) -> dict[str, str]:
         """Get headers for authenticated requests."""
