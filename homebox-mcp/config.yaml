@@ -28,7 +28,7 @@ options:
 schema:
   homebox_url: str
   auth_method: list(credentials|token)
-  homebox_email: email?
+  homebox_email: str?
   homebox_password: str?
   homebox_token: str?
   log_level: list(trace|debug|info|warning|error)
