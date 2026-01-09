@@ -9,14 +9,10 @@ bashio::log.info "Starting Homebox MCP Server..."
 
 # Export configuration as environment variables
 export HOMEBOX_URL="$(bashio::config 'homebox_url')"
-export AUTH_METHOD="$(bashio::config 'auth_method')"
-export HOMEBOX_EMAIL="$(bashio::config 'homebox_email')"
-export HOMEBOX_PASSWORD="$(bashio::config 'homebox_password')"
 export HOMEBOX_TOKEN="$(bashio::config 'homebox_token')"
 export LOG_LEVEL="$(bashio::config 'log_level')"
 
 bashio::log.info "Connecting to Homebox at: ${HOMEBOX_URL}"
-bashio::log.info "Authentication method: ${AUTH_METHOD}"
 
 # Run the MCP server
 exec python3 /app/server.py

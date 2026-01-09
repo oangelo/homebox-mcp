@@ -39,50 +39,10 @@ class HomeboxClient:
     async def _ensure_authenticated(self) -> None:
         """Ensure we have a valid authentication token."""
         if self._token is None:
-            logger.debug(f"Auth method: {self.config.auth_method}, use_token_auth: {self.config.use_token_auth}")
-            logger.debug(f"Token configured: {bool(self.config.homebox_token)}, Email configured: {bool(self.config.homebox_email)}")
-            
-            if self.config.use_token_auth:
-                # Use pre-configured token
-                self._token = self.config.homebox_token
-                logger.info("Using configured token for Homebox authentication")
-            else:
-                # Login with credentials
-                logger.info(f"Logging in with credentials (email: {self.config.homebox_email[:3] if self.config.homebox_email else 'empty'}...)")
-                await self._login()
-
-    async def _login(self) -> None:
-        """Authenticate with the Homebox API using credentials."""
-        client = await self._get_client()
-        response = await client.post(
-            f"{self.base_url}/users/login",
-            json={
-                "username": self.config.homebox_email,  # Homebox uses email as username
-                "password": self.config.homebox_password,
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        
-        # Log the full response structure to identify token field
-        logger.info(f"Login response keys: {list(data.keys()) if isinstance(data, dict) else type(data)}")
-        
-        # Homebox returns token directly or nested in different fields
-        self._token = data.get("token") or data.get("accessToken") or data.get("access_token")
-        
-        if not self._token and isinstance(data, dict):
-            # Try to find token in nested structure
-            for key in ["data", "result", "response"]:
-                if key in data and isinstance(data[key], dict):
-                    self._token = data[key].get("token") or data[key].get("accessToken")
-                    if self._token:
-                        logger.info(f"Token found in nested field: {key}")
-                        break
-        
-        if self._token:
-            logger.info(f"Successfully authenticated with Homebox. Token length: {len(self._token)}")
-        else:
-            logger.error(f"No token found in login response! Full response: {data}")
+            if not self.config.homebox_token:
+                raise ValueError("Homebox API token not configured. Please set homebox_token in addon settings.")
+            self._token = self.config.homebox_token
+            logger.info("Using configured API token for Homebox authentication")
 
     def _get_headers(self) -> dict[str, str]:
         """Get headers for authenticated requests."""
@@ -115,13 +75,10 @@ class HomeboxClient:
 
         response = await client.request(method, url, headers=headers, **kwargs)
 
-        # Handle token expiration
+        # Handle authentication errors
         if response.status_code == 401:
-            logger.info("Token expired, re-authenticating...")
-            self._token = None
-            await self._ensure_authenticated()
-            headers = self._get_headers()
-            response = await client.request(method, url, headers=headers, **kwargs)
+            logger.error("Authentication failed. Please check your Homebox API token.")
+            raise ValueError("Invalid or expired Homebox API token. Please generate a new token in Homebox settings.")
 
         response.raise_for_status()
 

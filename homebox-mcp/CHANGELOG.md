@@ -5,11 +5,24 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] - 2026-01-09
+
+### Alterado
+
+- **BREAKING**: Removida autenticação por email/senha (não funcionava corretamente)
+- Agora usa apenas autenticação por API Token
+- Simplificada configuração: apenas `homebox_url`, `homebox_token` e `log_level`
+
+### Como migrar
+
+1. No Homebox, vá em **Profile** → **API Tokens** → **Create Token**
+2. Copie o token gerado
+3. Configure o addon com o token
+
 ## [0.2.2] - 2026-01-09
 
 ### Alterado
 
-- Campo `homebox_username` renomeado para `homebox_email` (Homebox usa email para login)
 - Dashboard agora mostra instruções claras para configuração do Cloudflare Tunnel
 - Endereço interno (`http://homeassistant:8099`) exibido para configuração do túnel
 - Instruções sobre adicionar `/sse` ao endereço do túnel para Claude.ai
@@ -17,14 +30,6 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ### Corrigido
 
 - Correção da API FastMCP: `sse_app()` → `http_app(transport="sse")`
-
-## [0.2.1] - 2026-01-06
-
-### Adicionado
-
-- Opção de autenticação via Token ou Credenciais (email/senha)
-- Novo campo `auth_method` nas configurações (credentials | token)
-- Novo campo `homebox_token` para autenticação via token
 
 ## [0.2.0] - 2026-01-06
 
