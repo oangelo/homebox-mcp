@@ -10,7 +10,7 @@ bashio::log.info "Starting Homebox MCP Server..."
 # Export configuration as environment variables
 export HOMEBOX_URL="$(bashio::config 'homebox_url')"
 export AUTH_METHOD="$(bashio::config 'auth_method')"
-export HOMEBOX_USERNAME="$(bashio::config 'homebox_username')"
+export HOMEBOX_EMAIL="$(bashio::config 'homebox_email')"
 export HOMEBOX_PASSWORD="$(bashio::config 'homebox_password')"
 export HOMEBOX_TOKEN="$(bashio::config 'homebox_token')"
 export LOG_LEVEL="$(bashio::config 'log_level')"

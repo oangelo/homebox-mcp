@@ -53,7 +53,7 @@ class HomeboxClient:
         response = await client.post(
             f"{self.base_url}/users/login",
             json={
-                "username": self.config.homebox_username,
+                "username": self.config.homebox_email,  # Homebox uses email as username
                 "password": self.config.homebox_password,
             },
         )
