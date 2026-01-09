@@ -39,12 +39,16 @@ class HomeboxClient:
     async def _ensure_authenticated(self) -> None:
         """Ensure we have a valid authentication token."""
         if self._token is None:
+            logger.debug(f"Auth method: {self.config.auth_method}, use_token_auth: {self.config.use_token_auth}")
+            logger.debug(f"Token configured: {bool(self.config.homebox_token)}, Email configured: {bool(self.config.homebox_email)}")
+            
             if self.config.use_token_auth:
                 # Use pre-configured token
                 self._token = self.config.homebox_token
                 logger.info("Using configured token for Homebox authentication")
             else:
                 # Login with credentials
+                logger.info(f"Logging in with credentials (email: {self.config.homebox_email[:3] if self.config.homebox_email else 'empty'}...)")
                 await self._login()
 
     async def _login(self) -> None:
@@ -59,8 +63,24 @@ class HomeboxClient:
         )
         response.raise_for_status()
         data = response.json()
-        self._token = data.get("token")
-        logger.info("Successfully authenticated with Homebox using credentials")
+        logger.debug(f"Login response: {data}")
+        
+        # Homebox returns token directly or nested in different fields
+        self._token = data.get("token") or data.get("accessToken") or data.get("access_token")
+        
+        if not self._token and isinstance(data, dict):
+            # Try to find token in nested structure
+            for key in ["data", "result", "response"]:
+                if key in data and isinstance(data[key], dict):
+                    self._token = data[key].get("token") or data[key].get("accessToken")
+                    if self._token:
+                        break
+        
+        if self._token:
+            logger.info("Successfully authenticated with Homebox using credentials")
+            logger.debug(f"Token received (first 10 chars): {self._token[:10]}...")
+        else:
+            logger.error(f"No token found in login response. Response keys: {data.keys() if isinstance(data, dict) else type(data)}")
 
     def _get_headers(self) -> dict[str, str]:
         """Get headers for authenticated requests."""
