@@ -229,22 +229,52 @@ async def homepage(request):
             background: rgba(0, 217, 255, 0.1);
             border: 1px solid rgba(0, 217, 255, 0.3);
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
             margin-top: 30px;
         }}
         .endpoint-box h3 {{
             color: #00d9ff;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }}
+        .endpoint-section {{
+            margin-bottom: 10px;
+        }}
+        .endpoint-label {{
+            font-size: 0.9rem;
+            color: #e8e8e8;
+            margin-bottom: 8px;
             font-weight: 500;
         }}
         .endpoint-url {{
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px 15px;
             font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #00ff88;
             word-break: break-all;
+        }}
+        .endpoint-hint {{
+            margin-top: 8px;
+            color: #8892b0;
+            font-size: 0.85rem;
+        }}
+        .info-box {{
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.9rem;
+            color: #e8e8e8;
+        }}
+        .info-box code {{
+            background: rgba(0, 217, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: #00d9ff;
         }}
         .tools-section {{
             margin-top: 30px;
@@ -350,11 +380,31 @@ async def homepage(request):
         </div>
 
         <div class="endpoint-box">
-            <h3>🔌 Endpoint MCP (SSE)</h3>
-            <div class="endpoint-url">{config.homebox_url.replace("http://", "https://").replace(":7745", "")}/sse</div>
-            <p style="margin-top: 10px; color: #8892b0; font-size: 0.9rem;">
-                Use esta URL para conectar o Claude.ai ou Claude Desktop ao MCP.
-            </p>
+            <h3>🔌 Configuração do MCP</h3>
+            
+            <div class="endpoint-section">
+                <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
+                <div class="endpoint-url">http://homeassistant:8099</div>
+                <p class="endpoint-hint">
+                    Use este endereço no Cloudflare Tunnel → Additional hosts → Service
+                </p>
+            </div>
+            
+            <div class="endpoint-section" style="margin-top: 20px;">
+                <div class="endpoint-label">🌐 Endereço para Claude.ai</div>
+                <div class="endpoint-url">https://seu-dominio.com<span style="color: #00ff88;">/sse</span></div>
+                <p class="endpoint-hint">
+                    Após configurar o túnel, use o endereço do seu domínio + <strong>/sse</strong> no Claude.ai
+                </p>
+            </div>
+            
+            <div class="info-box" style="margin-top: 20px;">
+                <strong>📋 Resumo da configuração:</strong>
+                <ol style="margin: 10px 0 0 20px; color: #8892b0;">
+                    <li>No Cloudflare Tunnel, aponte seu domínio para <code>http://homeassistant:8099</code></li>
+                    <li>No Claude.ai, use <code>https://seu-dominio.com/sse</code></li>
+                </ol>
+            </div>
         </div>
 
         <div class="tools-section">
