@@ -85,10 +85,19 @@ Quando a autenticação está ativada:
 
 ### Onde Encontrar o Token
 
-1. Acesse a página web do addon (clique no painel lateral)
-2. O token aparece em destaque na seção "🔑 Seu Token de Autenticação"
-3. Clique em **📋 Copiar**
-4. Cole no campo **Segredo do Cliente OAuth** no Claude.ai
+Por segurança, o token **não é exibido na página web** do addon. Para obtê-lo:
+
+**Opção 1 - Logs do Addon (recomendado):**
+1. Vá em **Settings → Add-ons → Homebox MCP Server**
+2. Clique na aba **Log**
+3. O token aparece em destaque entre linhas `====`
+
+**Opção 2 - Arquivo (via SSH/Terminal):**
+```bash
+cat /data/mcp_auth_token.txt
+```
+
+O token é exibido nos logs **toda vez que o addon inicia**, então você sempre pode consultá-lo.
 
 ### Addon Homebox Recomendado
 

@@ -132,8 +132,6 @@ async def get_status_data() -> dict[str, Any]:
         "server_uptime": str(datetime.now() - server_start_time).split(".")[0],
         "mcp_endpoint": "/sse",
         "mcp_auth_enabled": config.mcp_auth_enabled,
-        "mcp_auth_token": config.mcp_auth_token if config.mcp_auth_enabled else "",
-        "token_auto_generated": config.token_was_auto_generated,
     }
 
     try:
@@ -432,11 +430,11 @@ async def homepage(request):
             <div class="endpoint-section">
                 <div class="endpoint-label">🔐 Autenticação MCP</div>
                 <div class="endpoint-url" style="color: {'#00ff88' if status['mcp_auth_enabled'] else '#ff6b7a'};">
-                    {'🔒 ATIVADA' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
+                    {'🔒 ATIVADA - Token Bearer necessário' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
                 </div>
             </div>
             
-            {'<div class="endpoint-section" style="margin-top: 20px; background: rgba(0, 255, 136, 0.1); border: 2px solid rgba(0, 255, 136, 0.4); border-radius: 12px; padding: 20px;"><div class="endpoint-label">🔑 Token para o Claude.ai' + (' <span style="background: #00d9ff; color: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px;">AUTO-GERADO</span>' if status["token_auto_generated"] else '') + '</div><div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;"><input type="text" id="auth-token" readonly value="' + status["mcp_auth_token"] + '" style="flex: 1; background: rgba(0,0,0,0.4); border: 2px solid rgba(0, 255, 136, 0.5); border-radius: 8px; padding: 14px; color: #00ff88; font-family: monospace; font-size: 1rem;"><button onclick="copyAuthToken()" style="background: #00ff88; color: #1a1a2e; border: none; border-radius: 8px; padding: 14px 24px; cursor: pointer; font-weight: bold; font-size: 1rem;">📋 Copiar</button></div><p class="endpoint-hint" style="margin-top: 12px;"><strong style="color: #00ff88;">👆 Copie este token e cole no Claude.ai</strong> → campo "Segredo do Cliente OAuth"</p><p class="endpoint-hint" style="margin-top: 8px; font-size: 0.85rem; color: #8892b0;"><em>ℹ️ Este token é gerado e salvo automaticamente. Você NÃO precisa configurá-lo nas opções do addon - o campo <code>mcp_auth_token</code> é opcional (só use se quiser um token personalizado).</em></p></div>' if status['mcp_auth_enabled'] and status['mcp_auth_token'] else '<div class="info-box" style="margin-top: 20px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Ative <code>mcp_auth_enabled: true</code> nas configurações do addon e clique em <strong>Salvar</strong>. Um token será gerado automaticamente.</p></div>'}
+            {'<div class="info-box" style="margin-top: 20px; background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><strong>🔑 Token gerado automaticamente</strong><p style="margin-top: 10px; color: #8892b0;">Por segurança, o token não é exibido nesta página. Para obter o token:</p><ul style="margin: 10px 0 0 20px; color: #8892b0;"><li><strong>Logs do addon:</strong> Settings → Add-ons → Homebox MCP Server → Log</li><li><strong>Arquivo:</strong> <code>/data/mcp_auth_token.txt</code> (via SSH/Terminal)</li></ul><p style="margin-top: 10px; color: #8892b0;">Cole o token no Claude.ai → campo <strong>Segredo do Cliente OAuth</strong></p></div>' if status['mcp_auth_enabled'] else '<div class="info-box" style="margin-top: 20px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Recomendado: ative <code>mcp_auth_enabled: true</code> nas configurações do addon. Um token será gerado automaticamente.</p></div>'}
             
             <div class="endpoint-section" style="margin-top: 20px;">
                 <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
@@ -457,10 +455,10 @@ async def homepage(request):
             <div class="info-box" style="margin-top: 20px;">
                 <strong>📋 Passos para configurar:</strong>
                 <ol style="margin: 10px 0 0 20px; color: #8892b0;">
-                    <li><strong>Addon:</strong> Ative <code>mcp_auth_enabled: true</code> → <strong>Salvar</strong> (deixe <code>mcp_auth_token</code> vazio)</li>
+                    <li><strong>Addon:</strong> Ative <code>mcp_auth_enabled: true</code> → <strong>Salvar</strong></li>
+                    <li><strong>Token:</strong> Consulte os <strong>logs do addon</strong> para copiar o token gerado</li>
                     <li><strong>Cloudflare:</strong> Configure o túnel apontando para <code>http://homeassistant:8099</code></li>
-                    <li><strong>Claude.ai:</strong> Use <code>https://seu-dominio.com/sse</code></li>
-                    <li><strong>Token:</strong> Copie o token <span style="color: #00ff88;">verde acima</span> e cole em <strong>Segredo do Cliente OAuth</strong> no Claude.ai</li>
+                    <li><strong>Claude.ai:</strong> URL: <code>https://seu-dominio.com/sse</code> + Token em <strong>Segredo do Cliente OAuth</strong></li>
                 </ol>
             </div>
         </div>
@@ -516,23 +514,6 @@ async def homepage(request):
     <script>
         // Auto-refresh every 30 seconds
         setTimeout(() => location.reload(), 30000);
-        
-        // Copy auth token to clipboard
-        function copyAuthToken() {{
-            const tokenInput = document.getElementById('auth-token');
-            if (tokenInput && tokenInput.value) {{
-                navigator.clipboard.writeText(tokenInput.value).then(() => {{
-                    const btn = event.target;
-                    const originalText = btn.textContent;
-                    btn.textContent = '✅ Copiado!';
-                    btn.style.background = '#00d9ff';
-                    setTimeout(() => {{
-                        btn.textContent = originalText;
-                        btn.style.background = '#00ff88';
-                    }}, 2000);
-                }});
-            }}
-        }}
     </script>
 </body>
 </html>"""

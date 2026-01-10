@@ -66,14 +66,22 @@ def _load_or_generate_token(configured_token: str, auth_enabled: bool) -> str:
         _log(f"Error saving token to file: {e}")
         _log("Token will be regenerated on next restart")
     
-    # Print token to logs so user can see it
-    _log("=" * 60)
-    _log("AUTO-GENERATED MCP AUTH TOKEN:")
-    _log(f"  {token}")
-    _log("Copy this token to Claude.ai 'Segredo do Cliente OAuth'")
-    _log("=" * 60)
-    
     return token
+
+
+def _print_token_to_logs(token: str, source: str) -> None:
+    """Print the token to logs for the user to copy."""
+    _log("")
+    _log("=" * 70)
+    _log("  MCP AUTHENTICATION TOKEN")
+    _log(f"  Source: {source}")
+    _log("=" * 70)
+    _log(f"  {token}")
+    _log("=" * 70)
+    _log("  Copy this token to Claude.ai -> 'Segredo do Cliente OAuth'")
+    _log("  File location: /data/mcp_auth_token.txt")
+    _log("=" * 70)
+    _log("")
 
 
 @dataclass
@@ -103,7 +111,13 @@ class Config:
             and not self._mcp_auth_token_configured 
             and bool(self._mcp_auth_token)
         )
-        _log(f"Token loaded: {bool(self._mcp_auth_token)}, auto-generated: {self._token_was_auto_generated}")
+        
+        # Print token to logs on startup when auth is enabled
+        if self.mcp_auth_enabled and self._mcp_auth_token:
+            if self._mcp_auth_token_configured:
+                _print_token_to_logs(self._mcp_auth_token, "configured in addon options")
+            else:
+                _print_token_to_logs(self._mcp_auth_token, "auto-generated (saved in /data/mcp_auth_token.txt)")
 
     @property
     def mcp_auth_token(self) -> str:
