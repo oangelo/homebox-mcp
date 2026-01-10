@@ -9,6 +9,7 @@ COPY rootfs /
 COPY app /app
 
 # Setup base system and Python
+# hadolint ignore=DL3018,DL3013
 RUN apk add --no-cache \
     python3 \
     py3-pip \
