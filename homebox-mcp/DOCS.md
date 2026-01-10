@@ -22,7 +22,7 @@ criem, movam e busquem itens no seu inventário doméstico.
 | `homebox_url`      | URL do servidor Homebox                                | Sim         |
 | `homebox_token`    | API Token do Homebox                                   | Sim         |
 | `mcp_auth_enabled` | Ativar autenticação no endpoint MCP                    | Não         |
-| `mcp_auth_token`   | Token Bearer (auto-gerado se vazio e auth ativada)     | Não         |
+| `mcp_auth_token`   | Token fixo (opcional, via "Editar como YAML")          | Não         |
 | `log_level`        | Nível de log (trace, debug, info, warning, error)      | Não         |
 
 ### Exemplo de Configuração
@@ -85,19 +85,27 @@ Quando a autenticação está ativada:
 
 ### Onde Encontrar o Token
 
-Por segurança, o token **não é exibido na página web** do addon. Para obtê-lo:
+O token é exibido nos **logs do addon** toda vez que ele inicia:
 
-**Opção 1 - Logs do Addon (recomendado):**
 1. Vá em **Settings → Add-ons → Homebox MCP Server**
 2. Clique na aba **Log**
-3. O token aparece em destaque entre linhas `====`
+3. Copie o token que aparece em destaque
 
-**Opção 2 - Arquivo (via SSH/Terminal):**
-```bash
-cat /data/mcp_auth_token.txt
+```
+======================================================================
+
+  🔑 MCP AUTHENTICATION TOKEN
+     (auto-generated)
+
+  xYz123AbCdEf456GhIjKlMnOpQrStUvWx...
+
+  📋 Copy this token to Claude.ai:
+     Field: 'Segredo do Cliente OAuth'
+
+======================================================================
 ```
 
-O token é exibido nos logs **toda vez que o addon inicia**, então você sempre pode consultá-lo.
+**Nota:** O token é gerado novamente a cada reinicialização do addon. Se precisar de um token fixo, configure `mcp_auth_token` via "Editar como YAML" nas opções do addon.
 
 ### Addon Homebox Recomendado
 

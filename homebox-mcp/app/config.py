@@ -4,10 +4,6 @@ import os
 import secrets
 import sys
 from dataclasses import dataclass, field
-from pathlib import Path
-
-# Path for storing auto-generated token
-TOKEN_FILE = Path("/data/mcp_auth_token.txt")
 
 
 def _log(message: str) -> None:
@@ -15,73 +11,26 @@ def _log(message: str) -> None:
     print(f"[CONFIG] {message}", file=sys.stderr, flush=True)
 
 
-def _load_or_generate_token(configured_token: str, auth_enabled: bool) -> str:
-    """Load token from config, file, or generate a new one.
-    
-    Priority:
-    1. Token from config/environment (if not empty)
-    2. Token from file (if exists)
-    3. Generate new token (if auth enabled)
-    """
-    # If token is configured, use it
-    if configured_token:
-        _log(f"Using configured MCP auth token (length: {len(configured_token)})")
-        return configured_token
-    
-    # If auth is disabled, no token needed
-    if not auth_enabled:
-        _log("MCP auth disabled, no token needed")
-        return ""
-    
-    _log(f"MCP auth enabled, looking for token...")
-    _log(f"Token file path: {TOKEN_FILE}")
-    
-    # Try to load from file
-    if TOKEN_FILE.exists():
-        _log(f"Token file exists, loading...")
-        try:
-            token = TOKEN_FILE.read_text().strip()
-            if token:
-                _log(f"Loaded existing token from file (length: {len(token)})")
-                return token
-            else:
-                _log("Token file was empty")
-        except Exception as e:
-            _log(f"Error reading token file: {e}")
-    else:
-        _log("Token file does not exist")
-    
-    # Generate new token
-    _log("Generating new token...")
-    token = secrets.token_urlsafe(32)
-    _log(f"Generated new token (length: {len(token)})")
-    
-    # Save to file for persistence
-    try:
-        _log(f"Saving token to {TOKEN_FILE}...")
-        TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
-        TOKEN_FILE.write_text(token)
-        _log("Token saved successfully")
-    except Exception as e:
-        _log(f"Error saving token to file: {e}")
-        _log("Token will be regenerated on next restart")
-    
-    return token
+def _generate_token() -> str:
+    """Generate a secure random token."""
+    return secrets.token_urlsafe(32)
 
 
-def _print_token_to_logs(token: str, source: str) -> None:
-    """Print the token to logs for the user to copy."""
-    _log("")
-    _log("=" * 70)
-    _log("  MCP AUTHENTICATION TOKEN")
-    _log(f"  Source: {source}")
-    _log("=" * 70)
-    _log(f"  {token}")
-    _log("=" * 70)
-    _log("  Copy this token to Claude.ai -> 'Segredo do Cliente OAuth'")
-    _log("  File location: /data/mcp_auth_token.txt")
-    _log("=" * 70)
-    _log("")
+def _print_token_banner(token: str, source: str) -> None:
+    """Print the token prominently in logs."""
+    print("", file=sys.stderr, flush=True)
+    print("=" * 70, file=sys.stderr, flush=True)
+    print("", file=sys.stderr, flush=True)
+    print("  🔑 MCP AUTHENTICATION TOKEN", file=sys.stderr, flush=True)
+    print(f"     ({source})", file=sys.stderr, flush=True)
+    print("", file=sys.stderr, flush=True)
+    print(f"  {token}", file=sys.stderr, flush=True)
+    print("", file=sys.stderr, flush=True)
+    print("  📋 Copy this token to Claude.ai:", file=sys.stderr, flush=True)
+    print("     Field: 'Segredo do Cliente OAuth'", file=sys.stderr, flush=True)
+    print("", file=sys.stderr, flush=True)
+    print("=" * 70, file=sys.stderr, flush=True)
+    print("", file=sys.stderr, flush=True)
 
 
 @dataclass
@@ -96,49 +45,36 @@ class Config:
     server_host: str = "0.0.0.0"
     server_port: int = 8099
     _mcp_auth_token: str = field(default="", init=False, repr=False)
-    _token_was_auto_generated: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self):
         """Initialize the MCP auth token after dataclass init."""
-        _log(f"Initializing config, mcp_auth_enabled={self.mcp_auth_enabled}")
-        self._mcp_auth_token = _load_or_generate_token(
-            self._mcp_auth_token_configured, 
-            self.mcp_auth_enabled
-        )
-        # Track if token was auto-generated
-        self._token_was_auto_generated = (
-            self.mcp_auth_enabled 
-            and not self._mcp_auth_token_configured 
-            and bool(self._mcp_auth_token)
-        )
+        if not self.mcp_auth_enabled:
+            _log("MCP authentication: DISABLED")
+            self._mcp_auth_token = ""
+            return
         
-        # Print token to logs on startup when auth is enabled
-        if self.mcp_auth_enabled and self._mcp_auth_token:
-            if self._mcp_auth_token_configured:
-                _print_token_to_logs(self._mcp_auth_token, "configured in addon options")
-            else:
-                _print_token_to_logs(self._mcp_auth_token, "auto-generated (saved in /data/mcp_auth_token.txt)")
+        _log("MCP authentication: ENABLED")
+        
+        # Use configured token or generate one
+        if self._mcp_auth_token_configured:
+            self._mcp_auth_token = self._mcp_auth_token_configured
+            _print_token_banner(self._mcp_auth_token, "configured in addon options")
+        else:
+            self._mcp_auth_token = _generate_token()
+            _print_token_banner(self._mcp_auth_token, "auto-generated")
 
     @property
     def mcp_auth_token(self) -> str:
         """Get the MCP authentication token."""
         return self._mcp_auth_token
 
-    @property
-    def token_was_auto_generated(self) -> bool:
-        """Check if the token was auto-generated."""
-        return self._token_was_auto_generated
-
     @classmethod
     def from_environment(cls) -> "Config":
         """Load configuration from environment variables."""
-        mcp_auth_enabled = os.environ.get("MCP_AUTH_ENABLED", "false").lower() == "true"
-        _log(f"MCP_AUTH_ENABLED env var: '{os.environ.get('MCP_AUTH_ENABLED', '')}' -> {mcp_auth_enabled}")
-        
         return cls(
             homebox_url=os.environ.get("HOMEBOX_URL", "http://localhost:7745"),
             homebox_token=os.environ.get("HOMEBOX_TOKEN", ""),
-            mcp_auth_enabled=mcp_auth_enabled,
+            mcp_auth_enabled=os.environ.get("MCP_AUTH_ENABLED", "false").lower() == "true",
             _mcp_auth_token_configured=os.environ.get("MCP_AUTH_TOKEN", ""),
             log_level=os.environ.get("LOG_LEVEL", "info"),
             server_host=os.environ.get("SERVER_HOST", "0.0.0.0"),
@@ -152,6 +88,4 @@ class Config:
 
 
 # Global configuration instance
-_log("Loading configuration from environment...")
 config = Config.from_environment()
-_log(f"Configuration loaded. MCP Auth: enabled={config.mcp_auth_enabled}, has_token={bool(config.mcp_auth_token)}")

@@ -434,7 +434,7 @@ async def homepage(request):
                 </div>
             </div>
             
-            {'<div class="info-box" style="margin-top: 20px; background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><strong>🔑 Token gerado automaticamente</strong><p style="margin-top: 10px; color: #8892b0;">Por segurança, o token não é exibido nesta página. Para obter o token:</p><ul style="margin: 10px 0 0 20px; color: #8892b0;"><li><strong>Logs do addon:</strong> Settings → Add-ons → Homebox MCP Server → Log</li><li><strong>Arquivo:</strong> <code>/data/mcp_auth_token.txt</code> (via SSH/Terminal)</li></ul><p style="margin-top: 10px; color: #8892b0;">Cole o token no Claude.ai → campo <strong>Segredo do Cliente OAuth</strong></p></div>' if status['mcp_auth_enabled'] else '<div class="info-box" style="margin-top: 20px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Recomendado: ative <code>mcp_auth_enabled: true</code> nas configurações do addon. Um token será gerado automaticamente.</p></div>'}
+            {'<div class="info-box" style="margin-top: 20px; background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><strong>🔑 Token gerado automaticamente</strong><p style="margin-top: 10px; color: #8892b0;">Para obter o token, consulte os <strong>logs do addon</strong>:</p><p style="margin: 10px 0; color: #e8e8e8;">Settings → Add-ons → Homebox MCP Server → <strong>Log</strong></p><p style="margin-top: 10px; color: #8892b0;">Cole o token no Claude.ai → campo <strong>Segredo do Cliente OAuth</strong></p></div>' if status['mcp_auth_enabled'] else '<div class="info-box" style="margin-top: 20px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Recomendado: ative <code>mcp_auth_enabled: true</code> nas configurações do addon. Um token será gerado automaticamente.</p></div>'}
             
             <div class="endpoint-section" style="margin-top: 20px;">
                 <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
@@ -455,10 +455,10 @@ async def homepage(request):
             <div class="info-box" style="margin-top: 20px;">
                 <strong>📋 Passos para configurar:</strong>
                 <ol style="margin: 10px 0 0 20px; color: #8892b0;">
-                    <li><strong>Addon:</strong> Ative <code>mcp_auth_enabled: true</code> → <strong>Salvar</strong></li>
-                    <li><strong>Token:</strong> Consulte os <strong>logs do addon</strong> para copiar o token gerado</li>
-                    <li><strong>Cloudflare:</strong> Configure o túnel apontando para <code>http://homeassistant:8099</code></li>
-                    <li><strong>Claude.ai:</strong> URL: <code>https://seu-dominio.com/sse</code> + Token em <strong>Segredo do Cliente OAuth</strong></li>
+                    <li>Ative <code>mcp_auth_enabled</code> nas configurações → <strong>Salvar</strong></li>
+                    <li>Copie o token dos <strong>logs</strong> do addon</li>
+                    <li>Configure Cloudflare Tunnel → <code>http://homeassistant:8099</code></li>
+                    <li>Claude.ai: <code>https://seu-dominio.com/sse</code> + token em <strong>Segredo do Cliente OAuth</strong></li>
                 </ol>
             </div>
         </div>
