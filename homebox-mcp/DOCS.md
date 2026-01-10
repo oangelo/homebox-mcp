@@ -17,12 +17,12 @@ criem, movam e busquem itens no seu inventário doméstico.
 
 ### Opções
 
-| Opção | Descrição | Obrigatório |
-|-------|-----------|-------------|
-| `homebox_url` | URL do servidor Homebox | Sim |
-| `homebox_username` | Usuário do Homebox | Sim |
-| `homebox_password` | Senha do Homebox | Sim |
-| `log_level` | Nível de log (trace, debug, info, warning, error) | Não |
+| Opção              | Descrição                                         | Obrigatório |
+| ------------------ | ------------------------------------------------- | ----------- |
+| `homebox_url`      | URL do servidor Homebox                           | Sim         |
+| `homebox_username` | Usuário do Homebox                                | Sim         |
+| `homebox_password` | Senha do Homebox                                  | Sim         |
+| `log_level`        | Nível de log (trace, debug, info, warning, error) | Não         |
 
 ### Exemplo de Configuração
 
@@ -35,10 +35,11 @@ log_level: "info"
 
 ### Addon Homebox Recomendado
 
-Este MCP foi desenvolvido para funcionar com o addon 
+Este MCP foi desenvolvido para funcionar com o addon
 [homebox-ingress-ha-addon](https://github.com/Oddiesea/homebox-ingress-ha-addon).
 
 Para instalar:
+
 1. Adicione o repositório: `https://github.com/Oddiesea/homebox-ingress-ha-addon`
 2. Instale o addon **Homebox**
 3. Inicie e configure seu inventário
@@ -53,6 +54,7 @@ Se você tem o Homebox rodando como addon do Home Assistant:
 4. A URL será algo como: `http://dac2a4a9-homebox:7745`
 
 Se o Homebox está rodando externamente:
+
 - Use o IP ou hostname do servidor: `http://192.168.1.100:7745`
 
 ## Ferramentas MCP Disponíveis
@@ -106,7 +108,7 @@ http://192.168.X.X:8099/sse
 
 ### Acesso Externo via Cloudflare Tunnel (Recomendado)
 
-Para expor o MCP na internet de forma segura (necessário para Claude.ai web), 
+Para expor o MCP na internet de forma segura (necessário para Claude.ai web),
 use o [addon Cloudflared](https://github.com/homeassistant-apps/app-cloudflared).
 
 #### 1. Instalar o addon Cloudflared
@@ -172,10 +174,7 @@ Adicione ao seu `claude_desktop_config.json`:
   "mcpServers": {
     "homebox": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.seudominio.com/sse"
-      ]
+      "args": ["mcp-remote", "https://mcp.seudominio.com/sse"]
     }
   }
 }
@@ -201,6 +200,7 @@ curl -N "https://mcp.seudominio.com/sse"
 ```
 
 Se funcionar, você verá:
+
 ```
 event: endpoint
 data: /messages/?session_id=...
@@ -250,6 +250,7 @@ Claude: [usa homebox_search com query="ferramenta"]
 ### Erro de Autenticação
 
 Verifique se:
+
 - O username e password estão corretos
 - O usuário existe no Homebox
 - O Homebox está acessível na URL configurada
@@ -257,6 +258,7 @@ Verifique se:
 ### Erro de Conexão
 
 Verifique se:
+
 - A URL do Homebox está correta
 - O addon Homebox está rodando
 - Não há firewall bloqueando a conexão
@@ -277,4 +279,5 @@ ha addons logs homebox-mcp
 ## Suporte
 
 Para problemas ou sugestões:
+
 - Abra uma issue no [repositório GitHub](https://github.com/oangelo/homebox-mcp)

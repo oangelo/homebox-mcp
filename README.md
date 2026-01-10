@@ -14,6 +14,7 @@ Este addon foi desenvolvido para funcionar com o **Homebox** rodando no Home Ass
 **Addon Homebox recomendado:** [homebox-ingress-ha-addon](https://github.com/Oddiesea/homebox-ingress-ha-addon)
 
 Para instalar o Homebox:
+
 1. Adicione o repositório: `https://github.com/Oddiesea/homebox-ingress-ha-addon`
 2. Instale o addon **Homebox**
 3. Inicie e configure seu inventário
@@ -56,8 +57,8 @@ log_level: "info"
 
 ## Acesso Externo via Cloudflare Tunnel
 
-Para usar com Claude.ai web ou acessar externamente, recomendamos usar o 
-[addon Cloudflared](https://github.com/homeassistant-apps/app-cloudflared) 
+Para usar com Claude.ai web ou acessar externamente, recomendamos usar o
+[addon Cloudflared](https://github.com/homeassistant-apps/app-cloudflared)
 para criar um tunnel seguro.
 
 ### Configurar Cloudflared
@@ -76,6 +77,7 @@ additional_hosts:
 ### Acesso Local
 
 Na rede local, acesse diretamente:
+
 ```
 http://homeassistant.local:8099/sse
 ```
@@ -97,10 +99,7 @@ Adicione ao seu `claude_desktop_config.json`:
   "mcpServers": {
     "homebox": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.seudominio.com/sse"
-      ]
+      "args": ["mcp-remote", "https://mcp.seudominio.com/sse"]
     }
   }
 }
@@ -121,15 +120,15 @@ Claude: [Busca e retorna localização do item]
 
 ## Ferramentas MCP
 
-| Ferramenta | Descrição |
-|------------|-----------|
+| Ferramenta               | Descrição                   |
+| ------------------------ | --------------------------- |
 | `homebox_list_locations` | Lista todas as localizações |
-| `homebox_list_items` | Lista itens com filtros |
-| `homebox_search` | Busca por itens |
-| `homebox_create_item` | Cria novo item |
-| `homebox_move_item` | Move item |
-| `homebox_list_labels` | Lista labels |
-| `homebox_get_statistics` | Estatísticas |
+| `homebox_list_items`     | Lista itens com filtros     |
+| `homebox_search`         | Busca por itens             |
+| `homebox_create_item`    | Cria novo item              |
+| `homebox_move_item`      | Move item                   |
+| `homebox_list_labels`    | Lista labels                |
+| `homebox_get_statistics` | Estatísticas                |
 
 [Documentação completa](homebox-mcp/DOCS.md)
 
