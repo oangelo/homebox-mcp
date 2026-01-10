@@ -68,10 +68,10 @@ log_level: "info"
 
 Quando a autenticação está ativada, configure no Claude.ai:
 
-| Campo | Valor |
-|-------|-------|
-| **URL do servidor** | `https://seu-dominio.com/sse` |
-| **ID do Cliente OAuth** | *Deixe em branco* |
+| Campo                        | Valor                                             |
+| ---------------------------- | ------------------------------------------------- |
+| **URL do servidor**          | `https://seu-dominio.com/sse`                     |
+| **ID do Cliente OAuth**      | _Deixe em branco_                                 |
 | **Segredo do Cliente OAuth** | `MEU_TOKEN_SEGURO_PARA_MCP` ← Cole seu token aqui |
 
 **Importante**: O token vai no campo **Segredo do Cliente OAuth**, não no ID do Cliente.
