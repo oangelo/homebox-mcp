@@ -17,13 +17,13 @@ criem, movam e busquem itens no seu inventário doméstico.
 
 ### Opções
 
-| Opção              | Descrição                                         | Obrigatório |
-| ------------------ | ------------------------------------------------- | ----------- |
-| `homebox_url`      | URL do servidor Homebox                           | Sim         |
-| `homebox_token`    | API Token do Homebox                              | Sim         |
-| `mcp_auth_enabled` | Ativar autenticação no endpoint MCP               | Não         |
-| `mcp_auth_token`   | Token Bearer para autenticação MCP                | Não         |
-| `log_level`        | Nível de log (trace, debug, info, warning, error) | Não         |
+| Opção              | Descrição                                              | Obrigatório |
+| ------------------ | ------------------------------------------------------ | ----------- |
+| `homebox_url`      | URL do servidor Homebox                                | Sim         |
+| `homebox_token`    | API Token do Homebox                                   | Sim         |
+| `mcp_auth_enabled` | Ativar autenticação no endpoint MCP                    | Não         |
+| `mcp_auth_token`   | Token Bearer (auto-gerado se vazio e auth ativada)     | Não         |
+| `log_level`        | Nível de log (trace, debug, info, warning, error)      | Não         |
 
 ### Exemplo de Configuração
 
@@ -47,44 +47,48 @@ log_level: "info"
 
 O addon suporta autenticação Bearer token opcional para proteger o endpoint MCP.
 
-### Recomendação
+### Token Gerado Automaticamente
+
+Quando você ativa `mcp_auth_enabled: true`, o addon **gera automaticamente** um token seguro se você não definir um manualmente. O token é salvo e persiste entre reinicializações.
+
+### Configuração Simplificada
 
 1. **Primeiro**, teste a conexão com `mcp_auth_enabled: false`
-2. **Depois** que tudo funcionar, ative a autenticação:
-   - Defina um token seguro em `mcp_auth_token`
+2. **Depois** que tudo funcionar:
    - Ative `mcp_auth_enabled: true`
+   - Reinicie o addon
+   - O token será exibido no dashboard - copie-o para o Claude.ai
 
-### Configuração com Autenticação
+### Configuração Manual (Opcional)
+
+Se preferir definir seu próprio token:
 
 ```yaml
 homebox_url: "http://dac2a4a9-homebox:7745"
 homebox_token: "SEU_TOKEN_API_HOMEBOX"
 mcp_auth_enabled: true
-mcp_auth_token: "MEU_TOKEN_SEGURO_PARA_MCP"
+mcp_auth_token: "MEU_TOKEN_PERSONALIZADO"  # opcional
 log_level: "info"
 ```
 
 ### Configuração no Claude.ai
 
-Quando a autenticação está ativada, configure no Claude.ai:
+Quando a autenticação está ativada:
 
-| Campo                        | Valor                                             |
-| ---------------------------- | ------------------------------------------------- |
-| **URL do servidor**          | `https://seu-dominio.com/sse`                     |
-| **ID do Cliente OAuth**      | _Deixe em branco_                                 |
-| **Segredo do Cliente OAuth** | `MEU_TOKEN_SEGURO_PARA_MCP` ← Cole seu token aqui |
+| Campo                        | Valor                                         |
+| ---------------------------- | --------------------------------------------- |
+| **URL do servidor**          | `https://seu-dominio.com/sse`                 |
+| **ID do Cliente OAuth**      | _Deixe em branco_                             |
+| **Segredo do Cliente OAuth** | Cole o token exibido no dashboard do addon    |
 
 **Importante**: O token vai no campo **Segredo do Cliente OAuth**, não no ID do Cliente.
 
-### Gerando um Token Seguro
+### Onde Encontrar o Token
 
-O dashboard do addon tem um botão para gerar tokens seguros automaticamente:
-
-1. Acesse a página web do addon
-2. Na seção "Gerar Token Seguro", clique em **Gerar**
-3. Clique em **Copiar**
-4. Cole o token em `mcp_auth_token` nas configurações do addon
-5. Cole o mesmo token no campo **Segredo do Cliente OAuth** no Claude.ai
+1. Acesse a página web do addon (clique no painel lateral)
+2. O token aparece em destaque na seção "🔑 Seu Token de Autenticação"
+3. Clique em **📋 Copiar**
+4. Cole no campo **Segredo do Cliente OAuth** no Claude.ai
 
 ### Addon Homebox Recomendado
 

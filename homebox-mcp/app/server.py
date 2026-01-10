@@ -132,6 +132,8 @@ async def get_status_data() -> dict[str, Any]:
         "server_uptime": str(datetime.now() - server_start_time).split(".")[0],
         "mcp_endpoint": "/sse",
         "mcp_auth_enabled": config.mcp_auth_enabled,
+        "mcp_auth_token": config.mcp_auth_token if config.mcp_auth_enabled else "",
+        "token_auto_generated": config.token_was_auto_generated,
     }
 
     try:
@@ -430,35 +432,11 @@ async def homepage(request):
             <div class="endpoint-section">
                 <div class="endpoint-label">🔐 Autenticação MCP</div>
                 <div class="endpoint-url" style="color: {'#00ff88' if status['mcp_auth_enabled'] else '#ff6b7a'};">
-                    {'🔒 ATIVADA - Token Bearer necessário' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
+                    {'🔒 ATIVADA' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
                 </div>
-                <p class="endpoint-hint">
-                    {'Configure o header: Authorization: Bearer SEU_TOKEN' if status['mcp_auth_enabled'] else '⚠️ Recomendado: ative a autenticação após testar a conexão'}
-                </p>
             </div>
             
-            <div class="endpoint-section" style="margin-top: 20px;">
-                <div class="endpoint-label">🎲 Gerar Token Seguro</div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="generated-token" readonly 
-                           style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); 
-                                  border-radius: 8px; padding: 12px; color: #00ff88; font-family: monospace;"
-                           placeholder="Clique em Gerar para criar um token">
-                    <button onclick="generateToken()" 
-                            style="background: #00d9ff; color: #1a1a2e; border: none; border-radius: 8px; 
-                                   padding: 12px 20px; cursor: pointer; font-weight: bold;">
-                        Gerar
-                    </button>
-                    <button onclick="copyToken()" 
-                            style="background: rgba(255,255,255,0.1); color: #e8e8e8; border: 1px solid rgba(255,255,255,0.2); 
-                                   border-radius: 8px; padding: 12px 20px; cursor: pointer;">
-                        Copiar
-                    </button>
-                </div>
-                <p class="endpoint-hint">
-                    Copie este token e cole no campo <code>mcp_auth_token</code> nas configurações do addon
-                </p>
-            </div>
+            {'<div class="endpoint-section" style="margin-top: 20px; background: rgba(0, 255, 136, 0.1); border: 2px solid rgba(0, 255, 136, 0.4); border-radius: 12px; padding: 20px;"><div class="endpoint-label">🔑 Seu Token de Autenticação' + (' (gerado automaticamente)' if status["token_auto_generated"] else '') + '</div><div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;"><input type="text" id="auth-token" readonly value="' + status["mcp_auth_token"] + '" style="flex: 1; background: rgba(0,0,0,0.4); border: 2px solid rgba(0, 255, 136, 0.5); border-radius: 8px; padding: 14px; color: #00ff88; font-family: monospace; font-size: 1rem;"><button onclick="copyAuthToken()" style="background: #00ff88; color: #1a1a2e; border: none; border-radius: 8px; padding: 14px 24px; cursor: pointer; font-weight: bold; font-size: 1rem;">📋 Copiar</button></div><p class="endpoint-hint" style="margin-top: 12px; color: #00ff88;"><strong>Cole este token no Claude.ai</strong> → campo "Segredo do Cliente OAuth"</p></div>' if status['mcp_auth_enabled'] and status['mcp_auth_token'] else '<div class="info-box" style="margin-top: 20px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Ative <code>mcp_auth_enabled: true</code> nas configurações do addon. Um token será gerado automaticamente.</p></div>'}
             
             <div class="endpoint-section" style="margin-top: 20px;">
                 <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
@@ -476,31 +454,14 @@ async def homepage(request):
                 </p>
             </div>
             
-            <div class="info-box" style="margin-top: 20px; background: rgba(0, 217, 255, 0.1); border-color: rgba(0, 217, 255, 0.3);">
-                <strong>🔑 Configuração OAuth no Claude.ai:</strong>
-                <table style="width: 100%; margin-top: 10px; color: #8892b0; font-size: 0.9rem;">
-                    <tr>
-                        <td style="padding: 8px 0;"><strong>URL do servidor:</strong></td>
-                        <td><code>https://seu-dominio.com/sse</code></td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0;"><strong>ID do Cliente OAuth:</strong></td>
-                        <td><span style="color: #8892b0;">Deixe em branco</span></td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0;"><strong>Segredo do Cliente OAuth:</strong></td>
-                        <td><code style="color: #00ff88;">SEU_MCP_AUTH_TOKEN</code> ← Cole seu token aqui</td>
-                    </tr>
-                </table>
-            </div>
-            
             <div class="info-box" style="margin-top: 20px;">
-                <strong>📋 Resumo da configuração:</strong>
+                <strong>📋 Como configurar:</strong>
                 <ol style="margin: 10px 0 0 20px; color: #8892b0;">
-                    <li>No Cloudflare Tunnel, aponte seu domínio para <code>http://homeassistant:8099</code></li>
-                    <li>Gere um token seguro acima e configure em <code>mcp_auth_token</code></li>
-                    <li>Ative <code>mcp_auth_enabled: true</code> nas configurações</li>
-                    <li>No Claude.ai, cole o token no campo <strong>Segredo do Cliente OAuth</strong></li>
+                    <li>Ative <code>mcp_auth_enabled: true</code> nas configurações do addon</li>
+                    <li>Reinicie o addon - um token será <strong>gerado automaticamente</strong></li>
+                    <li>Copie o token exibido acima</li>
+                    <li>Configure seu Cloudflare Tunnel apontando para <code>http://homeassistant:8099</code></li>
+                    <li>No Claude.ai, use <code>https://seu-dominio.com/sse</code> e cole o token no campo <strong>Segredo do Cliente OAuth</strong></li>
                 </ol>
             </div>
         </div>
@@ -557,27 +518,20 @@ async def homepage(request):
         // Auto-refresh every 30 seconds
         setTimeout(() => location.reload(), 30000);
         
-        // Generate a secure random token
-        function generateToken() {{
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            const array = new Uint8Array(32);
-            crypto.getRandomValues(array);
-            let token = '';
-            for (let i = 0; i < array.length; i++) {{
-                token += chars[array[i] % chars.length];
-            }}
-            document.getElementById('generated-token').value = token;
-        }}
-        
-        // Copy token to clipboard
-        function copyToken() {{
-            const tokenInput = document.getElementById('generated-token');
-            if (tokenInput.value) {{
+        // Copy auth token to clipboard
+        function copyAuthToken() {{
+            const tokenInput = document.getElementById('auth-token');
+            if (tokenInput && tokenInput.value) {{
                 navigator.clipboard.writeText(tokenInput.value).then(() => {{
-                    alert('Token copiado para a área de transferência!');
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copiado!';
+                    btn.style.background = '#00d9ff';
+                    setTimeout(() => {{
+                        btn.textContent = originalText;
+                        btn.style.background = '#00ff88';
+                    }}, 2000);
                 }});
-            }} else {{
-                alert('Gere um token primeiro!');
             }}
         }}
     </script>
