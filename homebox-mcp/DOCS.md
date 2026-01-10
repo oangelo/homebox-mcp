@@ -64,12 +64,27 @@ mcp_auth_token: "MEU_TOKEN_SEGURO_PARA_MCP"
 log_level: "info"
 ```
 
-### Usando no Claude.ai
+### Configuração no Claude.ai
 
 Quando a autenticação está ativada, configure no Claude.ai:
 
-- **URL**: `https://seu-dominio.com/sse`
-- **Authorization Header**: `Bearer MEU_TOKEN_SEGURO_PARA_MCP`
+| Campo | Valor |
+|-------|-------|
+| **URL do servidor** | `https://seu-dominio.com/sse` |
+| **ID do Cliente OAuth** | *Deixe em branco* |
+| **Segredo do Cliente OAuth** | `MEU_TOKEN_SEGURO_PARA_MCP` ← Cole seu token aqui |
+
+**Importante**: O token vai no campo **Segredo do Cliente OAuth**, não no ID do Cliente.
+
+### Gerando um Token Seguro
+
+O dashboard do addon tem um botão para gerar tokens seguros automaticamente:
+
+1. Acesse a página web do addon
+2. Na seção "Gerar Token Seguro", clique em **Gerar**
+3. Clique em **Copiar**
+4. Cole o token em `mcp_auth_token` nas configurações do addon
+5. Cole o mesmo token no campo **Segredo do Cliente OAuth** no Claude.ai
 
 ### Addon Homebox Recomendado
 

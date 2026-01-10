@@ -438,6 +438,29 @@ async def homepage(request):
             </div>
             
             <div class="endpoint-section" style="margin-top: 20px;">
+                <div class="endpoint-label">🎲 Gerar Token Seguro</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="generated-token" readonly 
+                           style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); 
+                                  border-radius: 8px; padding: 12px; color: #00ff88; font-family: monospace;"
+                           placeholder="Clique em Gerar para criar um token">
+                    <button onclick="generateToken()" 
+                            style="background: #00d9ff; color: #1a1a2e; border: none; border-radius: 8px; 
+                                   padding: 12px 20px; cursor: pointer; font-weight: bold;">
+                        Gerar
+                    </button>
+                    <button onclick="copyToken()" 
+                            style="background: rgba(255,255,255,0.1); color: #e8e8e8; border: 1px solid rgba(255,255,255,0.2); 
+                                   border-radius: 8px; padding: 12px 20px; cursor: pointer;">
+                        Copiar
+                    </button>
+                </div>
+                <p class="endpoint-hint">
+                    Copie este token e cole no campo <code>mcp_auth_token</code> nas configurações do addon
+                </p>
+            </div>
+            
+            <div class="endpoint-section" style="margin-top: 20px;">
                 <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
                 <div class="endpoint-url">http://homeassistant:8099</div>
                 <p class="endpoint-hint">
@@ -453,12 +476,31 @@ async def homepage(request):
                 </p>
             </div>
             
+            <div class="info-box" style="margin-top: 20px; background: rgba(0, 217, 255, 0.1); border-color: rgba(0, 217, 255, 0.3);">
+                <strong>🔑 Configuração OAuth no Claude.ai:</strong>
+                <table style="width: 100%; margin-top: 10px; color: #8892b0; font-size: 0.9rem;">
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>URL do servidor:</strong></td>
+                        <td><code>https://seu-dominio.com/sse</code></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>ID do Cliente OAuth:</strong></td>
+                        <td><span style="color: #8892b0;">Deixe em branco</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Segredo do Cliente OAuth:</strong></td>
+                        <td><code style="color: #00ff88;">SEU_MCP_AUTH_TOKEN</code> ← Cole seu token aqui</td>
+                    </tr>
+                </table>
+            </div>
+            
             <div class="info-box" style="margin-top: 20px;">
                 <strong>📋 Resumo da configuração:</strong>
                 <ol style="margin: 10px 0 0 20px; color: #8892b0;">
                     <li>No Cloudflare Tunnel, aponte seu domínio para <code>http://homeassistant:8099</code></li>
-                    <li>No Claude.ai, use <code>https://seu-dominio.com/sse</code></li>
-                    <li>{'Configure o token no header Authorization' if status['mcp_auth_enabled'] else 'Após testar, ative a autenticação nas configurações'}</li>
+                    <li>Gere um token seguro acima e configure em <code>mcp_auth_token</code></li>
+                    <li>Ative <code>mcp_auth_enabled: true</code> nas configurações</li>
+                    <li>No Claude.ai, cole o token no campo <strong>Segredo do Cliente OAuth</strong></li>
                 </ol>
             </div>
         </div>
@@ -514,6 +556,30 @@ async def homepage(request):
     <script>
         // Auto-refresh every 30 seconds
         setTimeout(() => location.reload(), 30000);
+        
+        // Generate a secure random token
+        function generateToken() {{
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            let token = '';
+            for (let i = 0; i < array.length; i++) {{
+                token += chars[array[i] % chars.length];
+            }}
+            document.getElementById('generated-token').value = token;
+        }}
+        
+        // Copy token to clipboard
+        function copyToken() {{
+            const tokenInput = document.getElementById('generated-token');
+            if (tokenInput.value) {{
+                navigator.clipboard.writeText(tokenInput.value).then(() => {{
+                    alert('Token copiado para a área de transferência!');
+                }});
+            }} else {{
+                alert('Gere um token primeiro!');
+            }}
+        }}
     </script>
 </body>
 </html>"""
