@@ -25,7 +25,7 @@ class BearerAuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
         # Skip auth for dashboard pages (protected by HA auth)
-        if request.url.path in ["/", "/api/status", "/api/show-token"]:
+        if request.url.path in ["/", "/api/status"]:
             return await call_next(request)
 
         # If auth is disabled, allow all requests
@@ -430,11 +430,22 @@ async def homepage(request):
             <div class="endpoint-section">
                 <div class="endpoint-label">🔐 Autenticação MCP</div>
                 <div class="endpoint-url" style="color: {'#00ff88' if status['mcp_auth_enabled'] else '#ff6b7a'};">
-                    {'🔒 ATIVADA - Token Bearer necessário' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
+                    {'🔒 ATIVADA' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
                 </div>
             </div>
             
-            {'<div class="info-box" style="margin-top: 20px; background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><strong>🔑 Token gerado automaticamente</strong><p style="margin-top: 10px; color: #8892b0;">Clique no botão abaixo para exibir o token nos <strong>logs do addon</strong>:</p><div style="margin: 15px 0;"><button id="showTokenBtn" onclick="showToken()" style="background: #00ff88; color: #1a1a2e; border: none; border-radius: 8px; padding: 12px 24px; cursor: pointer; font-weight: bold; font-size: 1rem;">📋 Mostrar Token nos Logs</button><span id="tokenStatus" style="margin-left: 15px; color: #8892b0;"></span></div><p style="color: #8892b0; font-size: 0.9rem;">Depois, vá em: Settings → Add-ons → Homebox MCP Server → <strong>Log</strong></p><p style="margin-top: 10px; color: #8892b0;">Cole o token no Claude.ai → campo <strong>Segredo do Cliente OAuth</strong></p></div>' if status['mcp_auth_enabled'] else '<div class="info-box" style="margin-top: 20px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Recomendado: ative <code>mcp_auth_enabled: true</code> nas configurações do addon. Um token será gerado automaticamente.</p></div>'}
+            <div class="info-box" style="margin-top: 20px; background: rgba(0, 217, 255, 0.1); border-color: rgba(0, 217, 255, 0.3);">
+                <strong>🎲 Gerador de Token</strong>
+                <p style="margin-top: 10px; color: #8892b0;">Gere um token seguro e copie para as configurações do addon:</p>
+                <div style="margin: 15px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button onclick="generateToken()" style="background: #00d9ff; color: #1a1a2e; border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; font-weight: bold;">🎲 Gerar Token</button>
+                    <input type="text" id="generatedToken" readonly placeholder="Clique em Gerar" style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 12px; color: #00ff88; font-family: monospace;">
+                    <button onclick="copyToken()" style="background: rgba(255,255,255,0.1); color: #e8e8e8; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 12px 20px; cursor: pointer;">📋 Copiar</button>
+                </div>
+                <p style="color: #8892b0; font-size: 0.9rem;">Após copiar, cole nas <strong>configurações do addon</strong> → campo <code>mcp_auth_token</code></p>
+            </div>
+            
+            {'<div class="info-box" style="margin-top: 15px; background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3);"><strong>✅ Token configurado</strong><p style="margin-top: 8px; color: #8892b0;">Use o mesmo token no Claude.ai → campo <strong>Segredo do Cliente OAuth</strong></p></div>' if status['mcp_auth_enabled'] and config.mcp_auth_token else ('<div class="info-box" style="margin-top: 15px; background: rgba(255, 200, 50, 0.1); border-color: rgba(255, 200, 50, 0.3);"><strong>⚠️ Token não configurado</strong><p style="margin-top: 8px; color: #8892b0;">Gere um token acima e configure em <code>mcp_auth_token</code> nas opções do addon.</p></div>' if status['mcp_auth_enabled'] else '<div class="info-box" style="margin-top: 15px; background: rgba(255, 107, 122, 0.1); border-color: rgba(255, 107, 122, 0.3);"><strong>⚠️ Autenticação desativada</strong><p style="margin-top: 8px; color: #8892b0;">Recomendado: ative <code>mcp_auth_enabled</code> e configure um token.</p></div>')}
             
             <div class="endpoint-section" style="margin-top: 20px;">
                 <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
@@ -455,10 +466,10 @@ async def homepage(request):
             <div class="info-box" style="margin-top: 20px;">
                 <strong>📋 Passos para configurar:</strong>
                 <ol style="margin: 10px 0 0 20px; color: #8892b0;">
-                    <li>Ative <code>mcp_auth_enabled</code> nas configurações → <strong>Salvar</strong></li>
-                    <li>Copie o token dos <strong>logs</strong> do addon</li>
+                    <li>Clique em <strong>🎲 Gerar Token</strong> acima e copie</li>
+                    <li>Nas configurações do addon: ative <code>mcp_auth_enabled</code> e cole o token em <code>mcp_auth_token</code></li>
                     <li>Configure Cloudflare Tunnel → <code>http://homeassistant:8099</code></li>
-                    <li>Claude.ai: <code>https://seu-dominio.com/sse</code> + token em <strong>Segredo do Cliente OAuth</strong></li>
+                    <li>No Claude.ai: URL <code>https://seu-dominio.com/sse</code> + mesmo token em <strong>Segredo do Cliente OAuth</strong></li>
                 </ol>
             </div>
         </div>
@@ -515,40 +526,24 @@ async def homepage(request):
         // Auto-refresh every 60 seconds
         setTimeout(() => location.reload(), 60000);
         
-        // Show token in logs
-        async function showToken() {{
-            const btn = document.getElementById('showTokenBtn');
-            const status = document.getElementById('tokenStatus');
-            
-            btn.disabled = true;
-            btn.textContent = '⏳ Enviando...';
-            status.textContent = '';
-            
-            try {{
-                const response = await fetch('/api/show-token');
-                const data = await response.json();
-                
-                if (data.success) {{
-                    btn.textContent = '✅ Token nos Logs!';
-                    btn.style.background = '#00d9ff';
-                    status.textContent = '→ Agora veja os logs do addon';
-                    status.style.color = '#00ff88';
-                }} else {{
-                    btn.textContent = '❌ Erro';
-                    status.textContent = data.message;
-                    status.style.color = '#ff6b7a';
-                }}
-            }} catch (e) {{
-                btn.textContent = '❌ Erro';
-                status.textContent = 'Falha na requisição';
-                status.style.color = '#ff6b7a';
+        // Generate a secure random token (client-side)
+        function generateToken() {{
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            const token = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+            document.getElementById('generatedToken').value = token;
+        }}
+        
+        // Copy token to clipboard
+        function copyToken() {{
+            const input = document.getElementById('generatedToken');
+            if (!input.value) {{
+                alert('Gere um token primeiro!');
+                return;
             }}
-            
-            setTimeout(() => {{
-                btn.disabled = false;
-                btn.textContent = '📋 Mostrar Token nos Logs';
-                btn.style.background = '#00ff88';
-            }}, 3000);
+            navigator.clipboard.writeText(input.value).then(() => {{
+                alert('Token copiado!\\n\\nAgora cole nas configurações do addon:\\n→ mcp_auth_token\\n\\nE também no Claude.ai:\\n→ Segredo do Cliente OAuth');
+            }});
         }}
     </script>
 </body>
@@ -562,40 +557,11 @@ async def api_status(request):
     return JSONResponse(status)
 
 
-async def api_show_token(request):
-    """Print the MCP auth token to logs."""
-    if not config.mcp_auth_enabled:
-        logger.warning("=" * 70)
-        logger.warning("MCP Authentication is DISABLED")
-        logger.warning("Enable 'mcp_auth_enabled' in addon settings first")
-        logger.warning("=" * 70)
-        return JSONResponse({"success": False, "message": "Auth not enabled"})
-    
-    if not config.mcp_auth_token:
-        logger.error("No MCP auth token available")
-        return JSONResponse({"success": False, "message": "No token"})
-    
-    # Print token prominently to logs
-    logger.info("=" * 70)
-    logger.info("")
-    logger.info("  🔑 MCP AUTHENTICATION TOKEN")
-    logger.info("")
-    logger.info(f"  {config.mcp_auth_token}")
-    logger.info("")
-    logger.info("  📋 Copy this token to Claude.ai:")
-    logger.info("     Field: 'Segredo do Cliente OAuth'")
-    logger.info("")
-    logger.info("=" * 70)
-    
-    return JSONResponse({"success": True, "message": "Token printed to logs"})
-
-
 # Create custom Starlette app with MCP mounted and auth middleware
 app = Starlette(
     routes=[
         Route("/", homepage),
         Route("/api/status", api_status),
-        Route("/api/show-token", api_show_token),
         Mount("/", app=mcp.http_app(transport="sse")),
     ],
     middleware=[
