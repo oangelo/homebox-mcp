@@ -67,6 +67,7 @@ log_level: "info"
 ### Usando no Claude.ai
 
 Quando a autenticação está ativada, configure no Claude.ai:
+
 - **URL**: `https://seu-dominio.com/sse`
 - **Authorization Header**: `Bearer MEU_TOKEN_SEGURO_PARA_MCP`
 
