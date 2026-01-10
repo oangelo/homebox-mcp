@@ -19,8 +19,12 @@ panel_title: "Homebox MCP"
 options:
   homebox_url: "http://homeassistant.local:7745"
   homebox_token: ""
+  mcp_auth_enabled: false
+  mcp_auth_token: ""
   log_level: "info"
 schema:
   homebox_url: str
   homebox_token: str
+  mcp_auth_enabled: bool
+  mcp_auth_token: str?
   log_level: list(trace|debug|info|warning|error)

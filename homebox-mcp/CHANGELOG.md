@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] - 2026-01-09
+
+### Adicionado
+
+- **Autenticação OAuth opcional** para o endpoint MCP
+- Nova opção `mcp_auth_enabled` para ativar/desativar autenticação
+- Nova opção `mcp_auth_token` para definir o Bearer token
+- Dashboard mostra status de autenticação
+- Recomendação: teste sem auth primeiro, depois ative
+
+### Como usar
+
+1. Teste a conexão com `mcp_auth_enabled: false`
+2. Após funcionar, defina um token em `mcp_auth_token`
+3. Ative `mcp_auth_enabled: true`
+4. No Claude.ai, configure o header: `Authorization: Bearer SEU_TOKEN`
+
 ## [0.3.0] - 2026-01-09
 
 ### Alterado

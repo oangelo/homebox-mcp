@@ -9,13 +9,57 @@ from typing import Any
 
 from fastmcp import FastMCP
 from starlette.applications import Starlette
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 import uvicorn
 
 from config import config
 from homebox_client import HomeboxClient
 from tools import register_tools
+
+
+class BearerAuthMiddleware(BaseHTTPMiddleware):
+    """Middleware to authenticate requests using Bearer token."""
+
+    async def dispatch(self, request, call_next):
+        # Skip auth for homepage and status endpoint
+        if request.url.path in ["/", "/api/status"]:
+            return await call_next(request)
+
+        # If auth is disabled, allow all requests
+        if not config.mcp_auth_enabled:
+            return await call_next(request)
+
+        # Check for Authorization header
+        auth_header = request.headers.get("Authorization", "")
+
+        if not auth_header:
+            return Response(
+                content="Missing Authorization header. Use: Authorization: Bearer <token>",
+                status_code=401,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # Validate Bearer token
+        if not auth_header.startswith("Bearer "):
+            return Response(
+                content="Invalid Authorization header format. Use: Bearer <token>",
+                status_code=401,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        token = auth_header[7:]  # Remove "Bearer " prefix
+
+        if token != config.mcp_auth_token:
+            return Response(
+                content="Invalid token",
+                status_code=401,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return await call_next(request)
 
 # Configure logging
 log_level = getattr(logging, config.log_level.upper(), logging.INFO)
@@ -87,6 +131,7 @@ async def get_status_data() -> dict[str, Any]:
         "labels_count": 0,
         "server_uptime": str(datetime.now() - server_start_time).split(".")[0],
         "mcp_endpoint": "/sse",
+        "mcp_auth_enabled": config.mcp_auth_enabled,
     }
 
     try:
@@ -383,6 +428,16 @@ async def homepage(request):
             <h3>🔌 Configuração do MCP</h3>
             
             <div class="endpoint-section">
+                <div class="endpoint-label">🔐 Autenticação MCP</div>
+                <div class="endpoint-url" style="color: {'#00ff88' if status['mcp_auth_enabled'] else '#ff6b7a'};">
+                    {'🔒 ATIVADA - Token Bearer necessário' if status['mcp_auth_enabled'] else '🔓 DESATIVADA - Endpoint aberto'}
+                </div>
+                <p class="endpoint-hint">
+                    {'Configure o header: Authorization: Bearer SEU_TOKEN' if status['mcp_auth_enabled'] else '⚠️ Recomendado: ative a autenticação após testar a conexão'}
+                </p>
+            </div>
+            
+            <div class="endpoint-section" style="margin-top: 20px;">
                 <div class="endpoint-label">📍 Endereço Interno (para configurar Cloudflare Tunnel)</div>
                 <div class="endpoint-url">http://homeassistant:8099</div>
                 <p class="endpoint-hint">
@@ -403,6 +458,7 @@ async def homepage(request):
                 <ol style="margin: 10px 0 0 20px; color: #8892b0;">
                     <li>No Cloudflare Tunnel, aponte seu domínio para <code>http://homeassistant:8099</code></li>
                     <li>No Claude.ai, use <code>https://seu-dominio.com/sse</code></li>
+                    <li>{'Configure o token no header Authorization' if status['mcp_auth_enabled'] else 'Após testar, ative a autenticação nas configurações'}</li>
                 </ol>
             </div>
         </div>
@@ -470,13 +526,16 @@ async def api_status(request):
     return JSONResponse(status)
 
 
-# Create custom Starlette app with MCP mounted
+# Create custom Starlette app with MCP mounted and auth middleware
 app = Starlette(
     routes=[
         Route("/", homepage),
         Route("/api/status", api_status),
         Mount("/", app=mcp.http_app(transport="sse")),
-    ]
+    ],
+    middleware=[
+        Middleware(BearerAuthMiddleware),
+    ],
 )
 
 
@@ -485,6 +544,11 @@ if __name__ == "__main__":
     logger.info(f"Connecting to Homebox at: {config.homebox_url}")
     logger.info(f"Dashboard available at: http://{config.server_host}:{config.server_port}/")
     logger.info(f"MCP SSE endpoint at: http://{config.server_host}:{config.server_port}/sse")
+
+    if config.mcp_auth_enabled:
+        logger.info("MCP Authentication: ENABLED - Bearer token required")
+    else:
+        logger.warning("MCP Authentication: DISABLED - Endpoint is open to anyone")
 
     uvicorn.run(
         app,

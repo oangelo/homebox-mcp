@@ -6,6 +6,12 @@ configuration:
   homebox_token:
     name: Homebox API Token
     description: API token from Homebox. Create one in Homebox → Profile → API Tokens
+  mcp_auth_enabled:
+    name: Enable MCP Authentication
+    description: When enabled, clients must provide a Bearer token to access the MCP endpoint. Recommended to test without auth first, then enable.
+  mcp_auth_token:
+    name: MCP Auth Token
+    description: Bearer token that clients must provide to access the MCP endpoint. Only used when MCP Authentication is enabled.
   log_level:
     name: Log Level
     description: Logging level for the MCP server

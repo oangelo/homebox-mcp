@@ -20,18 +20,55 @@ criem, movam e busquem itens no seu inventário doméstico.
 | Opção              | Descrição                                         | Obrigatório |
 | ------------------ | ------------------------------------------------- | ----------- |
 | `homebox_url`      | URL do servidor Homebox                           | Sim         |
-| `homebox_username` | Usuário do Homebox                                | Sim         |
-| `homebox_password` | Senha do Homebox                                  | Sim         |
+| `homebox_token`    | API Token do Homebox                              | Sim         |
+| `mcp_auth_enabled` | Ativar autenticação no endpoint MCP               | Não         |
+| `mcp_auth_token`   | Token Bearer para autenticação MCP                | Não         |
 | `log_level`        | Nível de log (trace, debug, info, warning, error) | Não         |
 
 ### Exemplo de Configuração
 
 ```yaml
-homebox_url: "http://homeassistant.local:7745"
-homebox_username: "admin@example.com"
-homebox_password: "sua_senha_aqui"
+homebox_url: "http://dac2a4a9-homebox:7745"
+homebox_token: "SEU_TOKEN_API_HOMEBOX"
+mcp_auth_enabled: false
+mcp_auth_token: ""
 log_level: "info"
 ```
+
+### Criando o API Token do Homebox
+
+1. Acesse o Homebox
+2. Vá em **Profile** (ícone de usuário)
+3. Clique em **API Tokens**
+4. Clique em **Create Token**
+5. Copie o token gerado
+
+## Autenticação MCP (OAuth)
+
+O addon suporta autenticação Bearer token opcional para proteger o endpoint MCP.
+
+### Recomendação
+
+1. **Primeiro**, teste a conexão com `mcp_auth_enabled: false`
+2. **Depois** que tudo funcionar, ative a autenticação:
+   - Defina um token seguro em `mcp_auth_token`
+   - Ative `mcp_auth_enabled: true`
+
+### Configuração com Autenticação
+
+```yaml
+homebox_url: "http://dac2a4a9-homebox:7745"
+homebox_token: "SEU_TOKEN_API_HOMEBOX"
+mcp_auth_enabled: true
+mcp_auth_token: "MEU_TOKEN_SEGURO_PARA_MCP"
+log_level: "info"
+```
+
+### Usando no Claude.ai
+
+Quando a autenticação está ativada, configure no Claude.ai:
+- **URL**: `https://seu-dominio.com/sse`
+- **Authorization Header**: `Bearer MEU_TOKEN_SEGURO_PARA_MCP`
 
 ### Addon Homebox Recomendado
 

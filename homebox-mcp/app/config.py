@@ -10,6 +10,8 @@ class Config:
 
     homebox_url: str
     homebox_token: str
+    mcp_auth_enabled: bool
+    mcp_auth_token: str
     log_level: str = "info"
     server_host: str = "0.0.0.0"
     server_port: int = 8099
@@ -20,6 +22,8 @@ class Config:
         return cls(
             homebox_url=os.environ.get("HOMEBOX_URL", "http://localhost:7745"),
             homebox_token=os.environ.get("HOMEBOX_TOKEN", ""),
+            mcp_auth_enabled=os.environ.get("MCP_AUTH_ENABLED", "false").lower() == "true",
+            mcp_auth_token=os.environ.get("MCP_AUTH_TOKEN", ""),
             log_level=os.environ.get("LOG_LEVEL", "info"),
             server_host=os.environ.get("SERVER_HOST", "0.0.0.0"),
             server_port=int(os.environ.get("SERVER_PORT", "8099")),
