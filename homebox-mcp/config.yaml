@@ -1,7 +1,7 @@
 ---
 name: "Homebox MCP Server"
 description: "MCP Server para gerenciar inventário Homebox via IA"
-version: "0.1.7"
+version: "0.1.8"
 slug: "homebox-mcp"
 url: "https://github.com/oangelo/homebox-mcp"
 init: false

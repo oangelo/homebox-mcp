@@ -21,7 +21,7 @@ from tools import register_tools
 
 
 class BearerAuthMiddleware(BaseHTTPMiddleware):
-    """Middleware to authenticate requests using Bearer token."""
+    """Middleware to authenticate requests using Bearer or Basic auth."""
 
     async def dispatch(self, request, call_next):
         # Skip auth for dashboard pages (protected by HA auth)
@@ -34,31 +34,59 @@ class BearerAuthMiddleware(BaseHTTPMiddleware):
 
         # Check for Authorization header
         auth_header = request.headers.get("Authorization", "")
+        
+        # Log headers for debugging (only on /sse endpoint)
+        if request.url.path == "/sse":
+            logger.info(f"Auth request to {request.url.path}")
+            logger.info(f"Authorization header: {auth_header[:50] if auth_header else 'MISSING'}...")
 
         if not auth_header:
             return Response(
-                content="Missing Authorization header. Use: Authorization: Bearer <token>",
+                content="Missing Authorization header",
                 status_code=401,
-                headers={"WWW-Authenticate": "Bearer"},
+                headers={"WWW-Authenticate": 'Bearer realm="MCP"'},
             )
 
-        # Validate Bearer token
-        if not auth_header.startswith("Bearer "):
+        token = None
+        
+        # Try Bearer token first
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            logger.debug("Using Bearer authentication")
+        
+        # Try Basic auth (client_id:client_secret)
+        elif auth_header.startswith("Basic "):
+            import base64
+            try:
+                decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+                # Format is client_id:client_secret, we use client_secret as the token
+                parts = decoded.split(":", 1)
+                if len(parts) == 2:
+                    # Use the secret (second part) as the token
+                    token = parts[1]
+                    logger.debug("Using Basic authentication (client_secret)")
+                else:
+                    token = decoded
+                    logger.debug("Using Basic authentication (single value)")
+            except Exception as e:
+                logger.error(f"Failed to decode Basic auth: {e}")
+        
+        if not token:
             return Response(
-                content="Invalid Authorization header format. Use: Bearer <token>",
+                content="Invalid Authorization header format",
                 status_code=401,
-                headers={"WWW-Authenticate": "Bearer"},
+                headers={"WWW-Authenticate": 'Bearer realm="MCP"'},
             )
-
-        token = auth_header[7:]  # Remove "Bearer " prefix
 
         if token != config.mcp_auth_token:
+            logger.warning(f"Invalid token received (length: {len(token)})")
             return Response(
                 content="Invalid token",
                 status_code=401,
-                headers={"WWW-Authenticate": "Bearer"},
+                headers={"WWW-Authenticate": 'Bearer realm="MCP"'},
             )
 
+        logger.debug("Authentication successful")
         return await call_next(request)
 
 # Configure logging
@@ -469,7 +497,13 @@ async def homepage(request):
                     <li>Clique em <strong>🎲 Gerar Token</strong> acima e copie</li>
                     <li>Nas configurações do addon: ative <code>mcp_auth_enabled</code> e cole o token em <code>mcp_auth_token</code></li>
                     <li>Configure Cloudflare Tunnel → <code>http://homeassistant:8099</code></li>
-                    <li>No Claude.ai: URL <code>https://seu-dominio.com/sse</code> + mesmo token em <strong>Segredo do Cliente OAuth</strong></li>
+                    <li>No Claude.ai:
+                        <ul style="margin-top: 5px;">
+                            <li>URL: <code>https://seu-dominio.com/sse</code></li>
+                            <li>ID do Cliente OAuth: <code>mcp</code> (ou qualquer texto)</li>
+                            <li>Segredo do Cliente OAuth: <strong>cole o token</strong></li>
+                        </ul>
+                    </li>
                 </ol>
             </div>
         </div>
