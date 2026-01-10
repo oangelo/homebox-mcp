@@ -85,17 +85,15 @@ Quando a autenticação está ativada:
 
 ### Onde Encontrar o Token
 
-O token é exibido nos **logs do addon** toda vez que ele inicia:
-
-1. Vá em **Settings → Add-ons → Homebox MCP Server**
-2. Clique na aba **Log**
-3. Copie o token que aparece em destaque
+1. Acesse a **página web do addon** (clique no painel lateral "Homebox MCP")
+2. Clique no botão **"📋 Mostrar Token nos Logs"**
+3. Vá em **Settings → Add-ons → Homebox MCP Server → Log**
+4. Copie o token que aparece em destaque:
 
 ```
 ======================================================================
 
   🔑 MCP AUTHENTICATION TOKEN
-     (auto-generated)
 
   xYz123AbCdEf456GhIjKlMnOpQrStUvWx...
 
