@@ -49,17 +49,20 @@ log_level: "info"
 
 O addon suporta autenticação Bearer token opcional para proteger o endpoint MCP.
 
-### Token Gerado Automaticamente
+### Geração do Token
 
-Quando você ativa `mcp_auth_enabled: true`, o addon **gera automaticamente** um token seguro se você não definir um manualmente. O token é salvo e persiste entre reinicializações.
+Ao ativar `mcp_auth_enabled: true`, é necessário gerar e configurar manualmente
+um token seguro (o addon não gera nenhum token sozinho).
 
 ### Configuração Simplificada
 
 1. **Primeiro**, teste a conexão com `mcp_auth_enabled: false`
 2. **Depois** que tudo funcionar:
+   - Acesse a página web do addon
+   - Clique em "Gerar Token" e copie-o
+   - Configure `mcp_auth_token` nas configurações do addon
    - Ative `mcp_auth_enabled: true`
    - Reinicie o addon
-   - O token será exibido no dashboard - copie-o para o Claude.ai
 
 ### Configuração Manual (Opcional)
 
@@ -80,8 +83,8 @@ Quando a autenticação está ativada:
 | Campo                        | Valor                                         |
 | ---------------------------- | --------------------------------------------- |
 | **URL do servidor**          | `https://seu-dominio.com/sse`                 |
-| **ID do Cliente OAuth**      | _Deixe em branco_                             |
-| **Segredo do Cliente OAuth** | Cole o token exibido no dashboard do addon    |
+| **ID do Cliente OAuth**      | `mcp` (ou qualquer texto)                     |
+| **Segredo do Cliente OAuth** | Cole o token gerado na página web do addon    |
 
 **Importante**: O token vai no campo **Segredo do Cliente OAuth**, não no ID do Cliente.
 
@@ -124,7 +127,8 @@ Se o Homebox está rodando externamente:
 
 ### Localizações
 
-- **homebox_list_locations**: Lista todas as localizações do inventário
+- **homebox_list_locations**: Lista todas as localizações do inventário (lista simples)
+- **homebox_get_location_tree**: Obtém a árvore completa de hierarquia de localizações
 - **homebox_get_location**: Obtém detalhes de uma localização
 - **homebox_create_location**: Cria uma nova localização
 - **homebox_update_location**: Atualiza uma localização
@@ -153,7 +157,8 @@ Se o Homebox está rodando externamente:
 
 ## Conectando ao Servidor MCP
 
-O servidor MCP expõe um endpoint SSE (Server-Sent Events) na porta 8099.
+O servidor MCP expõe um endpoint Streamable HTTP na porta 8099, ainda
+montado no caminho `/sse` por compatibilidade com configurações existentes.
 
 ### Acesso Local (Rede Interna)
 
@@ -252,28 +257,34 @@ Adicione ao seu `claude_desktop_config.json`:
 
 ### Testando a Conexão
 
-#### Via terminal (curl)
+#### Via MCP Inspector (recomendado)
+
+O [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) é a
+ferramenta oficial de teste e fala corretamente o protocolo Streamable HTTP
+(um `curl` simples não consegue completar esse handshake, veja abaixo):
 
 ```bash
 # Teste local
-curl -N "http://homeassistant.local:8099/sse"
+npx @modelcontextprotocol/inspector --server-url http://homeassistant.local:8099/sse --transport http
 
 # Teste via Cloudflare Tunnel
-curl -N "https://mcp.seudominio.com/sse"
+npx @modelcontextprotocol/inspector --server-url https://mcp.seudominio.com/sse --transport http
 ```
 
-Se funcionar, você verá:
+#### Via terminal (curl)
 
-```
-event: endpoint
-data: /messages/?session_id=...
-```
-
-#### Via MCP Inspector
+Um `curl` simples (GET) só confirma que o servidor está acessível, não que o
+MCP funciona — ele não completa o handshake do protocolo, então espere um
+`400 Bad Request` em vez de um stream de dados:
 
 ```bash
-npx @anthropic/mcp-inspector https://mcp.seudominio.com/sse
+curl -i "http://homeassistant.local:8099/sse"
 ```
+
+`400 Bad Request` (em vez de erro de conexão ou timeout) significa que o
+servidor está no ar e acessível. Se a autenticação estiver ativada, adicione
+`-H "Authorization: Bearer SEU_TOKEN"` e espere o mesmo `400` (não um
+`401 Unauthorized`) quando o token for aceito.
 
 ## Exemplos de Uso
 
@@ -314,8 +325,8 @@ Claude: [usa homebox_search com query="ferramenta"]
 
 Verifique se:
 
-- O username e password estão corretos
-- O usuário existe no Homebox
+- O token da API está correto
+- O token tem as permissões necessárias
 - O Homebox está acessível na URL configurada
 
 ### Erro de Conexão

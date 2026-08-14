@@ -2,7 +2,8 @@
 # Python 3.11+
 
 # MCP Server Framework
-fastmcp>=2.3.4
+# Upper bound guards against a future FastMCP 3.x changing the ASGI/lifespan API.
+fastmcp>=2.3.4,<3
 
 # HTTP Client
 httpx>=0.28.1

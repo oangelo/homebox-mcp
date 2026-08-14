@@ -152,15 +152,26 @@ Claude: [Busca e retorna localização do item]
 
 ## Ferramentas MCP
 
-| Ferramenta               | Descrição                   |
-| ------------------------ | --------------------------- |
-| `homebox_list_locations` | Lista todas as localizações |
-| `homebox_list_items`     | Lista itens com filtros     |
-| `homebox_search`         | Busca por itens             |
-| `homebox_create_item`    | Cria novo item              |
-| `homebox_move_item`      | Move item                   |
-| `homebox_list_labels`    | Lista labels                |
-| `homebox_get_statistics` | Estatísticas                |
+| Ferramenta                    | Descrição                              |
+| ------------------------------ | ---------------------------------------- |
+| `homebox_list_locations`      | Lista todas as localizações (lista simples) |
+| `homebox_get_location_tree`   | Obtém a árvore completa de hierarquia   |
+| `homebox_get_location`        | Detalhes da localização (pai/filhos)    |
+| `homebox_create_location`     | Cria nova localização                   |
+| `homebox_update_location`     | Atualiza localização                    |
+| `homebox_delete_location`     | Remove localização                      |
+| `homebox_list_items`          | Lista itens com filtros                 |
+| `homebox_get_item`            | Detalhes completos do item              |
+| `homebox_search`              | Busca por itens                         |
+| `homebox_create_item`         | Cria novo item                          |
+| `homebox_update_item`         | Atualiza campos do item                 |
+| `homebox_move_item`           | Move item para outra localização        |
+| `homebox_delete_item`         | Remove item                             |
+| `homebox_list_labels`         | Lista todas as labels                   |
+| `homebox_create_label`        | Cria nova label                         |
+| `homebox_update_label`        | Atualiza label                          |
+| `homebox_delete_label`        | Remove label                            |
+| `homebox_get_statistics`      | Estatísticas do inventário              |
 
 [Documentação completa](homebox-mcp/DOCS-pt-br.md)
 
@@ -179,7 +190,7 @@ cd homebox-mcp/app
 python server.py
 
 # Testar com MCP Inspector
-npx @anthropic/mcp-inspector http://localhost:8099/sse
+npx @modelcontextprotocol/inspector --server-url http://localhost:8099/sse --transport http
 ```
 
 ## Licença

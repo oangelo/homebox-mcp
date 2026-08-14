@@ -128,7 +128,8 @@ If Homebox is running externally:
 
 ### Locations
 
-- **homebox_list_locations**: List all inventory locations
+- **homebox_list_locations**: List all inventory locations (flat list)
+- **homebox_get_location_tree**: Get the full location hierarchy tree
 - **homebox_get_location**: Get location details
 - **homebox_create_location**: Create a new location
 - **homebox_update_location**: Update a location
@@ -157,7 +158,8 @@ If Homebox is running externally:
 
 ## Connecting to the MCP Server
 
-The MCP server exposes an SSE (Server-Sent Events) endpoint on port 8099.
+The MCP server exposes a Streamable HTTP endpoint on port 8099, still mounted
+at the `/sse` path for backward compatibility with existing client configs.
 
 ### Local Access (Internal Network)
 
@@ -256,28 +258,34 @@ Add to your `claude_desktop_config.json`:
 
 ### Testing the Connection
 
-#### Via terminal (curl)
+#### Via MCP Inspector (recommended)
+
+The [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector) is
+the official testing tool and correctly speaks the Streamable HTTP handshake
+(a raw `curl` request can't complete it, see below):
 
 ```bash
 # Local test
-curl -N "http://homeassistant.local:8099/sse"
+npx @modelcontextprotocol/inspector --server-url http://homeassistant.local:8099/sse --transport http
 
 # Test via Cloudflare Tunnel
-curl -N "https://mcp.yourdomain.com/sse"
+npx @modelcontextprotocol/inspector --server-url https://mcp.yourdomain.com/sse --transport http
 ```
 
-If it works, you'll see:
+#### Via terminal (curl)
 
-```
-event: endpoint
-data: /messages/?session_id=...
-```
-
-#### Via MCP Inspector
+A plain `curl` GET can only confirm the server is reachable, not that MCP
+itself works — it can't complete the protocol handshake, so expect a
+`400 Bad Request` rather than a stream of data:
 
 ```bash
-npx @anthropic/mcp-inspector https://mcp.yourdomain.com/sse
+curl -i "http://homeassistant.local:8099/sse"
 ```
+
+`400 Bad Request` (instead of a connection error or timeout) means the
+server is up and reachable. If authentication is enabled, add
+`-H "Authorization: Bearer YOUR_TOKEN"` and expect the same `400` (not a
+`401 Unauthorized`) once the token is accepted.
 
 ## Usage Examples
 

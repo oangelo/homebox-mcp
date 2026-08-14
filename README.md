@@ -20,6 +20,13 @@ To install Homebox:
 2. Install the **Homebox** addon
 3. Start and configure your inventory
 
+### Homebox version compatibility
+
+This addon works with both older Homebox versions and **Homebox v0.26.0+**, which
+introduced a breaking API change (the "entity merge": `/items` and `/locations`
+were unified into `/entities`, and labels became tags). The addon **auto-detects**
+which API your Homebox speaks, so no configuration change is needed after upgrading.
+
 ## About
 
 This addon exposes an MCP server that allows AI assistants (like Claude) to
@@ -152,15 +159,26 @@ Claude: [Searches and returns item location]
 
 ## MCP Tools
 
-| Tool                     | Description               |
-| ------------------------ | ------------------------- |
-| `homebox_list_locations` | List all locations        |
-| `homebox_list_items`     | List items with filters   |
-| `homebox_search`         | Search for items          |
-| `homebox_create_item`    | Create new item           |
-| `homebox_move_item`      | Move item                 |
-| `homebox_list_labels`    | List labels               |
-| `homebox_get_statistics` | Get statistics            |
+| Tool                         | Description                          |
+| ----------------------------- | ------------------------------------- |
+| `homebox_list_locations`     | List all locations (flat list)       |
+| `homebox_get_location_tree`  | Get full location hierarchy tree     |
+| `homebox_get_location`       | Get location details (parent/children) |
+| `homebox_create_location`    | Create new location                  |
+| `homebox_update_location`    | Update location                      |
+| `homebox_delete_location`    | Delete location                      |
+| `homebox_list_items`         | List items with filters              |
+| `homebox_get_item`           | Get complete item details            |
+| `homebox_search`             | Search for items                     |
+| `homebox_create_item`        | Create new item                      |
+| `homebox_update_item`        | Update item fields                   |
+| `homebox_move_item`          | Move item to another location        |
+| `homebox_delete_item`        | Delete item                          |
+| `homebox_list_labels`        | List all labels                      |
+| `homebox_create_label`       | Create new label                     |
+| `homebox_update_label`       | Update label                         |
+| `homebox_delete_label`       | Delete label                         |
+| `homebox_get_statistics`     | Get inventory statistics             |
 
 [Full Documentation](homebox-mcp/DOCS.md)
 
@@ -179,7 +197,7 @@ cd homebox-mcp/app
 python server.py
 
 # Test with MCP Inspector
-npx @anthropic/mcp-inspector http://localhost:8099/sse
+npx @modelcontextprotocol/inspector --server-url http://localhost:8099/sse --transport http
 ```
 
 ## License

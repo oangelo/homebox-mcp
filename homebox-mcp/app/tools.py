@@ -21,14 +21,12 @@ def register_tools(mcp: FastMCP, client: HomeboxClient) -> None:
 
     @mcp.tool()
     async def homebox_list_locations() -> list[dict[str, Any]]:
-        """List all locations in the inventory.
+        """List all locations in the inventory as a flat list.
 
-        Returns the complete list of locations registered in Homebox.
-        
-        NOTE: Due to Homebox API limitations, this endpoint does not return
-        hierarchy information (parent_id is always null). Use 
+        Returns the complete list of locations registered in Homebox, without
+        parent/children relationships (kept intentionally simple). Use
         homebox_get_location_tree() for full hierarchy or homebox_get_location()
-        for individual location details including parent info.
+        for a single location's parent/children details.
 
         Returns:
             List of locations with id, name, description, and item_count.
@@ -48,52 +46,15 @@ def register_tools(mcp: FastMCP, client: HomeboxClient) -> None:
     async def homebox_get_location_tree() -> list[dict[str, Any]]:
         """Get the complete location hierarchy tree.
 
-        This tool fetches all locations and enriches them with parent/children
-        relationships by making additional API calls. Use this when you need
-        to understand the full location hierarchy.
+        Fetches all locations and assembles them into a hierarchy based on
+        their parent relationships. Use this when you need to understand the
+        full location hierarchy (e.g. to find where to nest a new location).
 
         Returns:
             List of root locations (no parent), each with nested children array.
             Each location contains: id, name, description, item_count, children[].
         """
-        # First get all locations
-        locations = await client.get_locations()
-        
-        # Build a map of location details with parent info
-        location_details = {}
-        for loc in locations:
-            # Fetch full details for each location to get parent info
-            details = await client.get_location(loc.get("id"))
-            parent_id = details.get("parent", {}).get("id") if details.get("parent") else None
-            location_details[loc.get("id")] = {
-                "id": loc.get("id"),
-                "name": loc.get("name"),
-                "description": loc.get("description", ""),
-                "item_count": loc.get("itemCount", 0),
-                "parent_id": parent_id,
-                "children": [],
-            }
-        
-        # Build the tree structure
-        root_locations = []
-        for loc_id, loc in location_details.items():
-            parent_id = loc["parent_id"]
-            if parent_id and parent_id in location_details:
-                # Add as child to parent
-                location_details[parent_id]["children"].append(loc)
-            else:
-                # This is a root location
-                root_locations.append(loc)
-        
-        # Remove parent_id from output (it's redundant in tree structure)
-        def clean_tree(locations):
-            for loc in locations:
-                del loc["parent_id"]
-                if loc["children"]:
-                    clean_tree(loc["children"])
-            return locations
-        
-        return clean_tree(root_locations)
+        return await client.get_location_tree()
 
     @mcp.tool()
     async def homebox_get_location(location_id: str) -> dict[str, Any]:
@@ -110,8 +71,9 @@ def register_tools(mcp: FastMCP, client: HomeboxClient) -> None:
             Complete location details including:
             - id, name, description
             - parent: {id, name} if this location has a parent
-            - children: [{id, name}] list of child locations
-            - items: list of items in this location
+            - children: entities (sub-locations and/or items) directly
+              inside this location
+            - itemCount: number of items stored in this location
         """
         return await client.get_location(location_id)
 

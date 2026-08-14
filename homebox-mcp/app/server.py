@@ -10,7 +10,7 @@ from typing import Any
 from fastmcp import FastMCP
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 import uvicorn
@@ -20,40 +20,62 @@ from homebox_client import HomeboxClient
 from tools import register_tools
 
 
-class BearerAuthMiddleware(BaseHTTPMiddleware):
-    """Middleware to authenticate requests using Bearer or Basic auth."""
+class BearerAuthMiddleware:
+    """Middleware to authenticate requests using Bearer or Basic auth.
 
-    async def dispatch(self, request, call_next):
-        # Skip auth for dashboard pages (protected by HA auth)
-        if request.url.path in ["/", "/api/status"]:
-            return await call_next(request)
+    Implemented as raw ASGI (not starlette.middleware.base.BaseHTTPMiddleware)
+    on purpose: BaseHTTPMiddleware buffers/re-wraps the downstream response via
+    call_next(), which is incompatible with FastMCP's long-lived SSE stream and
+    intermittently raises "AssertionError: Unexpected message: ...
+    'http.response.start' ..." once a session has multiple in-flight requests.
+    See https://github.com/jlowin/fastmcp/issues/858 and
+    https://github.com/modelcontextprotocol/python-sdk/issues/883
+    """
 
-        # If auth is disabled, allow all requests
-        if not config.mcp_auth_enabled:
-            return await call_next(request)
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        # Only HTTP requests carry auth; pass lifespan/websocket scopes straight through.
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        request = Request(scope, receive=receive)
+        path = request.url.path
+
+        # Skip auth for dashboard pages (protected by HA auth) or when disabled.
+        if path in ("/", "/api/status") or not config.mcp_auth_enabled:
+            await self.app(scope, receive, send)
+            return
 
         # Check for Authorization header
         auth_header = request.headers.get("Authorization", "")
-        
+
         # Log headers for debugging (only on /sse endpoint)
-        if request.url.path == "/sse":
-            logger.info(f"Auth request to {request.url.path}")
+        if path == "/sse":
+            logger.info(f"Auth request to {path}")
             logger.info(f"Authorization header: {auth_header[:50] if auth_header else 'MISSING'}...")
 
-        if not auth_header:
-            return Response(
-                content="Missing Authorization header",
+        async def deny(content: str) -> None:
+            response = Response(
+                content=content,
                 status_code=401,
                 headers={"WWW-Authenticate": 'Bearer realm="MCP"'},
             )
+            await response(scope, receive, send)
+
+        if not auth_header:
+            await deny("Missing Authorization header")
+            return
 
         token = None
-        
+
         # Try Bearer token first
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
             logger.debug("Using Bearer authentication")
-        
+
         # Try Basic auth (client_id:client_secret)
         elif auth_header.startswith("Basic "):
             import base64
@@ -70,24 +92,18 @@ class BearerAuthMiddleware(BaseHTTPMiddleware):
                     logger.debug("Using Basic authentication (single value)")
             except Exception as e:
                 logger.error(f"Failed to decode Basic auth: {e}")
-        
+
         if not token:
-            return Response(
-                content="Invalid Authorization header format",
-                status_code=401,
-                headers={"WWW-Authenticate": 'Bearer realm="MCP"'},
-            )
+            await deny("Invalid Authorization header format")
+            return
 
         if token != config.mcp_auth_token:
             logger.warning(f"Invalid token received (length: {len(token)})")
-            return Response(
-                content="Invalid token",
-                status_code=401,
-                headers={"WWW-Authenticate": 'Bearer realm="MCP"'},
-            )
+            await deny("Invalid token")
+            return
 
         logger.debug("Authentication successful")
-        return await call_next(request)
+        await self.app(scope, receive, send)
 
 # Configure logging
 log_level = getattr(logging, config.log_level.upper(), logging.INFO)
@@ -514,15 +530,35 @@ async def homepage(request):
             <div class="tools-grid">
                 <div class="tool-item">
                     <div class="tool-name">homebox_list_locations</div>
-                    <div class="tool-desc">List all locations</div>
+                    <div class="tool-desc">List all locations (flat list)</div>
                 </div>
                 <div class="tool-item">
                     <div class="tool-name">homebox_get_location_tree</div>
                     <div class="tool-desc">Get full hierarchy tree</div>
                 </div>
                 <div class="tool-item">
+                    <div class="tool-name">homebox_get_location</div>
+                    <div class="tool-desc">Get location details</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_create_location</div>
+                    <div class="tool-desc">Create new location</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_update_location</div>
+                    <div class="tool-desc">Update location</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_delete_location</div>
+                    <div class="tool-desc">Delete location</div>
+                </div>
+                <div class="tool-item">
                     <div class="tool-name">homebox_list_items</div>
                     <div class="tool-desc">List items with filters</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_get_item</div>
+                    <div class="tool-desc">Get complete item details</div>
                 </div>
                 <div class="tool-item">
                     <div class="tool-name">homebox_search</div>
@@ -533,12 +569,32 @@ async def homepage(request):
                     <div class="tool-desc">Create new item</div>
                 </div>
                 <div class="tool-item">
+                    <div class="tool-name">homebox_update_item</div>
+                    <div class="tool-desc">Update item fields</div>
+                </div>
+                <div class="tool-item">
                     <div class="tool-name">homebox_move_item</div>
                     <div class="tool-desc">Move item to another location</div>
                 </div>
                 <div class="tool-item">
+                    <div class="tool-name">homebox_delete_item</div>
+                    <div class="tool-desc">Delete item</div>
+                </div>
+                <div class="tool-item">
                     <div class="tool-name">homebox_list_labels</div>
                     <div class="tool-desc">List all labels</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_create_label</div>
+                    <div class="tool-desc">Create new label</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_update_label</div>
+                    <div class="tool-desc">Update label</div>
+                </div>
+                <div class="tool-item">
+                    <div class="tool-name">homebox_delete_label</div>
+                    <div class="tool-desc">Delete label</div>
                 </div>
                 <div class="tool-item">
                     <div class="tool-name">homebox_get_statistics</div>
@@ -549,8 +605,8 @@ async def homepage(request):
 
         <footer>
             <p>
-                <a href="https://github.com/oangelo/homebox-mcp" target="_blank">GitHub</a> · 
-                Designed for use with <a href="https://github.com/Oddiesea/homebox-ingress-ha-addon" target="_blank">Homebox</a>
+                <a href="https://github.com/oangelo/homebox-mcp" target="_blank">GitHub</a> ·
+                Designed for use with the <a href="https://github.com/Oddiesea/homebox-ingress-ha-addon" target="_blank">Homebox HA Addon</a>
             </p>
         </footer>
     </div>
@@ -592,16 +648,41 @@ async def api_status(request):
     return JSONResponse(status)
 
 
+# Build the MCP ASGI app once so we can reuse its lifespan.
+# IMPORTANT: FastMCP starts its session manager inside the app's lifespan.
+# When mounting it under a custom Starlette app, that lifespan MUST be passed
+# to the parent app, otherwise the first request fails with
+# "RuntimeError: Task group is not initialized" (nested lifespans are ignored).
+#
+# transport="http" (Streamable HTTP) rather than the legacy "sse" transport:
+# the old SSE transport splits a session across two independent HTTP requests
+# (a long-lived GET stream that hands out a session_id, plus separate POST
+# .../messages?session_id=... calls) with no server-side check that the GET
+# side has actually finished the initialize handshake before POSTs on that
+# session are accepted. If a client (re)opens a second GET/sse connection —
+# which mcp-remote can do — requests can race and land on a session before it
+# is marked initialized, raising "Received request before initialization was
+# complete" and making every tool call fail. Streamable HTTP uses a single
+# endpoint keyed by an `Mcp-Session-Id` header instead of two endpoints
+# racing over a session_id query param, which avoids this class of bug.
+# See https://github.com/modelcontextprotocol/python-sdk/issues/423 and
+# https://github.com/modelcontextprotocol/python-sdk/issues/1844.
+# `path="/sse"` keeps the existing endpoint URL working (mcp-remote already
+# tries Streamable HTTP first against whatever URL it's given before falling
+# back to legacy SSE), so no client-side reconfiguration is required.
+mcp_app = mcp.http_app(transport="http", path="/sse")
+
 # Create custom Starlette app with MCP mounted and auth middleware
 app = Starlette(
     routes=[
         Route("/", homepage),
         Route("/api/status", api_status),
-        Mount("/", app=mcp.http_app(transport="sse")),
+        Mount("/", app=mcp_app),
     ],
     middleware=[
         Middleware(BearerAuthMiddleware),
     ],
+    lifespan=mcp_app.lifespan,
 )
 
 
@@ -609,7 +690,7 @@ if __name__ == "__main__":
     logger.info(f"Starting Homebox MCP Server on {config.server_host}:{config.server_port}")
     logger.info(f"Connecting to Homebox at: {config.homebox_url}")
     logger.info(f"Dashboard available at: http://{config.server_host}:{config.server_port}/")
-    logger.info(f"MCP SSE endpoint at: http://{config.server_host}:{config.server_port}/sse")
+    logger.info(f"MCP endpoint (Streamable HTTP) at: http://{config.server_host}:{config.server_port}/sse")
 
     if config.mcp_auth_enabled:
         logger.info("MCP Authentication: ENABLED - Bearer token required")
